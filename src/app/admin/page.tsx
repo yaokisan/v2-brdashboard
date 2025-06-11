@@ -57,101 +57,168 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
+      {/* Modern Header */}
+      <nav className="bg-white/80 backdrop-blur-lg border-b border-white/20 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">管理者ダッシュボード</h1>
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                  BEAUTY ROAD
+                </h1>
+                <p className="text-sm text-gray-600">管理者ダッシュボード</p>
+              </div>
+            </div>
             <button
               onClick={handleLogout}
-              className="text-gray-600 hover:text-gray-900"
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 rounded-xl transition-all duration-200"
             >
-              ログアウト
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>ログアウト</span>
             </button>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">プロジェクト一覧</h2>
+          {/* Header Section */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 space-y-4 sm:space-y-0">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">プロジェクト一覧</h2>
+              <p className="text-gray-600 mt-1">収録プロジェクトの管理</p>
+            </div>
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-105"
             >
-              新規プロジェクト作成
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>新規プロジェクト作成</span>
             </button>
           </div>
 
+          {/* Modern Create Project Modal */}
           {showCreateForm && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 className="text-lg font-medium mb-4">新規プロジェクト作成</h3>
-                <form onSubmit={handleCreateProject} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">プロジェクト名</label>
-                    <input
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
-                      className="mt-1 block w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      required
-                    />
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-8 w-full max-w-2xl shadow-2xl border border-white/20 transform transition-all duration-300">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">新規プロジェクト作成</h3>
+                      <p className="text-gray-600 text-sm">収録プロジェクトの基本情報を入力してください</p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">収録日</label>
-                    <input
-                      type="date"
-                      value={formData.recordingDate}
-                      onChange={(e) => setFormData({...formData, recordingDate: e.target.value})}
-                      className="mt-1 block w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      required
-                    />
+                  <button
+                    onClick={() => setShowCreateForm(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors duration-200"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateProject} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        プロジェクト名 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
+                        placeholder="例: BEAUTY ROAD Vol.12"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        収録日 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.recordingDate}
+                        onChange={(e) => setFormData({...formData, recordingDate: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        総収録時間 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.totalRecordingTime}
+                        placeholder="例: 8時間"
+                        onChange={(e) => setFormData({...formData, totalRecordingTime: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        収録場所 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.location}
+                        placeholder="例: 渋谷スタジオA"
+                        onChange={(e) => setFormData({...formData, location: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Google Map URL <span className="text-gray-400">(任意)</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.locationMapUrl}
+                        placeholder="https://maps.google.com/..."
+                        onChange={(e) => setFormData({...formData, locationMapUrl: e.target.value})}
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">総収録時間</label>
-                    <input
-                      type="text"
-                      value={formData.totalRecordingTime}
-                      placeholder="例: 8時間"
-                      onChange={(e) => setFormData({...formData, totalRecordingTime: e.target.value})}
-                      className="mt-1 block w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">収録場所</label>
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => setFormData({...formData, location: e.target.value})}
-                      className="mt-1 block w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Google Map URL (任意)</label>
-                    <input
-                      type="url"
-                      value={formData.locationMapUrl}
-                      onChange={(e) => setFormData({...formData, locationMapUrl: e.target.value})}
-                      className="mt-1 block w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
-                    />
-                  </div>
-                  <div className="flex space-x-3">
-                    <button
-                      type="submit"
-                      className="flex-1 bg-pink-600 text-white py-2 px-4 rounded-md hover:bg-pink-700"
-                    >
-                      作成
-                    </button>
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-4 pt-6 border-t border-gray-200">
                     <button
                       type="button"
                       onClick={() => setShowCreateForm(false)}
-                      className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+                      className="flex-1 px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-colors duration-200"
                     >
                       キャンセル
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                      プロジェクト作成
                     </button>
                   </div>
                 </form>
@@ -159,30 +226,72 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* Project Cards Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <div key={project.id} className="bg-white overflow-hidden shadow rounded-lg">
+              <div key={project.id} className="group bg-white/90 backdrop-blur-sm overflow-hidden shadow-lg rounded-2xl border border-white/20 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                {/* Card Header */}
+                <div className="bg-gradient-to-r from-pink-500 to-purple-500 px-6 py-4">
+                  <h3 className="text-xl font-bold text-white mb-1">{project.title}</h3>
+                  <p className="text-pink-100 text-sm">収録プロジェクト</p>
+                </div>
+                
+                {/* Card Content */}
                 <div className="p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">{project.title}</h3>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p>収録日: {project.recordingDate}</p>
-                    <p>総収録時間: {project.totalRecordingTime}</p>
-                    <p>場所: {project.location}</p>
-                    <p>出演者数: {project.performers.length}名</p>
-                    <p>企画数: {project.plans.length}件</p>
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0V2m6 5v6a1 1 0 01-1 1H9a1 1 0 01-1-1V7m10-5v13a2 2 0 01-2 2H5a2 2 0 01-2-2V2a2 2 0 012-2h14a2 2 0 012 2z" />
+                      </svg>
+                      <span className="text-sm text-gray-600">収録日: <span className="font-medium text-gray-900">{project.recordingDate}</span></span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-sm text-gray-600">時間: <span className="font-medium text-gray-900">{project.totalRecordingTime}</span></span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="text-sm text-gray-600">場所: <span className="font-medium text-gray-900">{project.location}</span></span>
+                    </div>
                   </div>
-                  <div className="mt-4 flex space-x-2">
+                  
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl p-3 text-center">
+                      <div className="text-2xl font-bold text-pink-600">{project.performers.length}</div>
+                      <div className="text-xs text-pink-500 font-medium">出演者</div>
+                    </div>
+                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-3 text-center">
+                      <div className="text-2xl font-bold text-purple-600">{project.plans.length}</div>
+                      <div className="text-xs text-purple-500 font-medium">企画</div>
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex space-x-2">
                     <button
                       onClick={() => router.push(`/admin/project/${project.id}`)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-1"
                     >
-                      編集
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span>編集</span>
                     </button>
                     <button
                       onClick={() => router.push(`/project/${project.id}`)}
-                      className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-1"
                     >
-                      公開ページ
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>表示</span>
                     </button>
                   </div>
                 </div>
@@ -190,9 +299,27 @@ export default function AdminDashboard() {
             ))}
           </div>
 
+          {/* Empty State */}
           {projects.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">まだプロジェクトがありません。新規作成してください。</p>
+            <div className="text-center py-16">
+              <div className="max-w-md mx-auto">
+                <div className="flex items-center justify-center w-24 h-24 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full mx-auto mb-6">
+                  <svg className="w-12 h-12 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">プロジェクトがありません</h3>
+                <p className="text-gray-600 mb-6">最初の収録プロジェクトを作成して始めましょう</p>
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="inline-flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-pink-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-105"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>新規プロジェクト作成</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
