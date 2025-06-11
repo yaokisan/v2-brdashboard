@@ -93,9 +93,9 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
   const addPlan = async () => {
     if (!project) return;
     const newPlan = await createPlan(project.id, {
-      title: '',
-      scheduledTime: '',
-      duration: '',
+      title: '新しい企画',
+      scheduledTime: '09:00',
+      duration: '30分',
       hasScript: false,
       isConfirmed: false
     });
@@ -131,26 +131,41 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">読み込み中...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-t-transparent"></div>
+      </div>
+    );
   }
 
   if (!project) {
-    return <div className="min-h-screen flex items-center justify-center">プロジェクトが見つかりません</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
+          <p className="text-gray-600">プロジェクトが見つかりません</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
+      <nav className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/admin')}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-pink-600 transition-colors flex items-center gap-1"
               >
-                ← 戻る
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                戻る
               </button>
-              <h1 className="text-xl font-bold text-gray-900">{project.title} - 編集</h1>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                {project.title} - 編集
+              </h1>
             </div>
           </div>
         </div>
@@ -182,8 +197,8 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           </div>
 
           {activeTab === 'basic' && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium mb-4">基本情報</h3>
+            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+              <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">基本情報</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">プロジェクト名</label>
@@ -191,7 +206,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                     type="text"
                     value={project.title}
                     onChange={(e) => updateProjectData({ title: e.target.value })}
-                    className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                   />
                 </div>
                 <div>
@@ -200,7 +215,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                     type="date"
                     value={project.recordingDate}
                     onChange={(e) => updateProjectData({ recordingDate: e.target.value })}
-                    className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                   />
                 </div>
                 <div>
@@ -209,7 +224,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                     type="text"
                     value={project.totalRecordingTime}
                     onChange={(e) => updateProjectData({ totalRecordingTime: e.target.value })}
-                    className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                   />
                 </div>
                 <div>
@@ -218,7 +233,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                     type="text"
                     value={project.location}
                     onChange={(e) => updateProjectData({ location: e.target.value })}
-                    className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -227,7 +242,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                     type="url"
                     value={project.locationMapUrl || ''}
                     onChange={(e) => updateProjectData({ locationMapUrl: e.target.value })}
-                    className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                   />
                 </div>
               </div>
@@ -235,13 +250,16 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           )}
 
           {activeTab === 'performers' && (
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">出演者管理</h3>
+                <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">出演者管理</h3>
                 <button
                   onClick={addPerformer}
-                  className="bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700"
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 shadow-md flex items-center gap-2"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
                   出演者追加
                 </button>
               </div>
@@ -255,7 +273,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           type="text"
                           value={performer.name}
                           onChange={(e) => updatePerformerData(performer.id, { name: e.target.value })}
-                          className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                         />
                       </div>
                       <div>
@@ -264,7 +282,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           type="text"
                           value={performer.role || ''}
                           onChange={(e) => updatePerformerData(performer.id, { role: e.target.value })}
-                          className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                         />
                       </div>
                       <div className="flex items-end space-x-2">
@@ -312,7 +330,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           type="text"
                           value={plan.title}
                           onChange={(e) => updatePlanData(plan.id, { title: e.target.value })}
-                          className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                         />
                       </div>
                       <div>
@@ -321,7 +339,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           type="time"
                           value={plan.scheduledTime}
                           onChange={(e) => updatePlanData(plan.id, { scheduledTime: e.target.value })}
-                          className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                         />
                       </div>
                       <div>
@@ -331,7 +349,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           value={plan.duration}
                           placeholder="例: 30分"
                           onChange={(e) => updatePlanData(plan.id, { duration: e.target.value })}
-                          className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                         />
                       </div>
                       <div>
@@ -340,7 +358,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           type="url"
                           value={plan.scriptUrl || ''}
                           onChange={(e) => updatePlanData(plan.id, { scriptUrl: e.target.value, hasScript: !!e.target.value })}
-                          className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                         />
                       </div>
                     </div>
@@ -350,7 +368,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                         value={plan.notes || ''}
                         onChange={(e) => updatePlanData(plan.id, { notes: e.target.value })}
                         rows={3}
-                        className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                       />
                     </div>
                     <div className="flex items-center justify-between">

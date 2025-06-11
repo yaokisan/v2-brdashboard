@@ -171,12 +171,12 @@ export async function createPlan(projectId: string, planData: Omit<Plan, 'id' | 
     .insert({
       project_id: projectId,
       title: planData.title,
-      scheduled_time: planData.scheduledTime,
+      scheduled_time: planData.scheduledTime || null,
       duration: planData.duration,
-      script_url: planData.scriptUrl,
+      script_url: planData.scriptUrl || null,
       has_script: planData.hasScript,
-      notes: planData.notes,
-      reference_video_url: planData.referenceVideoUrl,
+      notes: planData.notes || null,
+      reference_video_url: planData.referenceVideoUrl || null,
       is_confirmed: planData.isConfirmed
     })
     .select()
@@ -204,13 +204,13 @@ export async function createPlan(projectId: string, planData: Omit<Plan, 'id' | 
 export async function updatePlan(planId: string, updates: Partial<Plan>): Promise<boolean> {
   const updateData: any = {}
   
-  if (updates.title) updateData.title = updates.title
-  if (updates.scheduledTime) updateData.scheduled_time = updates.scheduledTime
-  if (updates.duration) updateData.duration = updates.duration
-  if (updates.scriptUrl !== undefined) updateData.script_url = updates.scriptUrl
+  if (updates.title !== undefined) updateData.title = updates.title
+  if (updates.scheduledTime !== undefined) updateData.scheduled_time = updates.scheduledTime || null
+  if (updates.duration !== undefined) updateData.duration = updates.duration
+  if (updates.scriptUrl !== undefined) updateData.script_url = updates.scriptUrl || null
   if (updates.hasScript !== undefined) updateData.has_script = updates.hasScript
-  if (updates.notes !== undefined) updateData.notes = updates.notes
-  if (updates.referenceVideoUrl !== undefined) updateData.reference_video_url = updates.referenceVideoUrl
+  if (updates.notes !== undefined) updateData.notes = updates.notes || null
+  if (updates.referenceVideoUrl !== undefined) updateData.reference_video_url = updates.referenceVideoUrl || null
   if (updates.isConfirmed !== undefined) updateData.is_confirmed = updates.isConfirmed
 
   const { error } = await supabase

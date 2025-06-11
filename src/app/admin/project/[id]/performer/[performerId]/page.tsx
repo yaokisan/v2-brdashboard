@@ -102,26 +102,41 @@ export default function AdminPerformerEditPage({
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">読み込み中...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-t-transparent"></div>
+      </div>
+    );
   }
 
   if (!project || !performer) {
-    return <div className="min-h-screen flex items-center justify-center">データが見つかりません</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
+          <p className="text-gray-600">データが見つかりません</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
+      <nav className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push(`/admin/project/${project.id}`)}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-pink-600 transition-colors flex items-center gap-1"
               >
-                ← プロジェクトに戻る
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                プロジェクトに戻る
               </button>
-              <h1 className="text-xl font-bold text-gray-900">{performer.name} - 詳細編集</h1>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                {performer.name} - 詳細編集
+              </h1>
             </div>
           </div>
         </div>
@@ -130,8 +145,8 @@ export default function AdminPerformerEditPage({
       <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0 space-y-6">
           
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium mb-4">基本情報</h3>
+          <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+            <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">基本情報</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">名前</label>
@@ -139,7 +154,7 @@ export default function AdminPerformerEditPage({
                   type="text"
                   value={performer.name}
                   onChange={(e) => updatePerformerData({ name: e.target.value })}
-                  className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                 />
               </div>
               <div>
@@ -148,7 +163,7 @@ export default function AdminPerformerEditPage({
                   type="text"
                   value={performer.role || ''}
                   onChange={(e) => updatePerformerData({ role: e.target.value })}
-                  className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                 />
               </div>
               <div>
@@ -157,7 +172,7 @@ export default function AdminPerformerEditPage({
                   type="time"
                   value={performer.startTime || ''}
                   onChange={(e) => updatePerformerData({ startTime: e.target.value })}
-                  className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                 />
               </div>
               <div>
@@ -166,7 +181,7 @@ export default function AdminPerformerEditPage({
                   type="time"
                   value={performer.endTime || ''}
                   onChange={(e) => updatePerformerData({ endTime: e.target.value })}
-                  className="w-full border-gray-300 rounded-md px-3 py-2 border focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                 />
               </div>
               <div className="md:col-span-2">
@@ -175,7 +190,7 @@ export default function AdminPerformerEditPage({
                     type="checkbox"
                     checked={performer.isTimeConfirmed}
                     onChange={(e) => updatePerformerData({ isTimeConfirmed: e.target.checked })}
-                    className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                    className="rounded border-gray-300 text-pink-600 focus:ring-pink-500 cursor-pointer"
                   />
                   <span className="ml-2 text-sm text-gray-700">時間確定済み</span>
                 </label>
@@ -183,15 +198,15 @@ export default function AdminPerformerEditPage({
             </div>
           </div>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium mb-4">企画への参加設定</h3>
+          <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+            <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">企画への参加設定</h3>
             <div className="space-y-4">
               {project.plans.map((plan) => {
                 const isAssigned = plan.performers.some(p => p.performerId === performer.id);
                 const performerRole = plan.performers.find(p => p.performerId === performer.id);
                 
                 return (
-                  <div key={plan.id} className="border rounded-lg p-4">
+                  <div key={plan.id} className="bg-white/70 backdrop-blur-sm border border-white/50 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-200">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3">
@@ -200,14 +215,14 @@ export default function AdminPerformerEditPage({
                               type="checkbox"
                               checked={isAssigned}
                               onChange={() => togglePlanAssignment(plan.id)}
-                              className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                              className="rounded border-gray-300 text-pink-600 focus:ring-pink-500 cursor-pointer"
                             />
                             <span className="ml-2 font-medium text-gray-900">{plan.title}</span>
                           </label>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                             plan.isConfirmed
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800'
+                              : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800'
                           }`}>
                             {plan.isConfirmed ? '確定' : '仮'}
                           </span>
@@ -257,15 +272,19 @@ export default function AdminPerformerEditPage({
             </div>
           </div>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium mb-4">プレビュー</h3>
+          <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+            <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">プレビュー</h3>
             <div className="text-sm text-gray-600 mb-4">
               出演者側から見える情報のプレビューです
             </div>
             <button
               onClick={() => router.push(`/project/${project.id}/performer/${performer.id}`)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 shadow-md flex items-center gap-2"
             >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
               出演者ページを確認
             </button>
           </div>

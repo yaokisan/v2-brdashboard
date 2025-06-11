@@ -90,29 +90,42 @@ export default function PerformerPage({
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">読み込み中...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-t-transparent"></div>
+      </div>
+    );
   }
 
   if (!project || !performer) {
-    return <div className="min-h-screen flex items-center justify-center">データが見つかりません</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
+          <p className="text-gray-600">データが見つかりません</p>
+        </div>
+      </div>
+    );
   }
 
   const performerPlans = getPerformerPlans();
   const timeline = generateTimeline();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
           <button
             onClick={() => router.push(`/project/${project.id}`)}
-            className="text-gray-600 hover:text-gray-900 flex items-center"
+            className="text-gray-600 hover:text-pink-600 transition-colors flex items-center gap-2"
           >
-            ← プロジェクトに戻る
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            プロジェクトに戻る
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/20">
           <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-8 text-white">
             <h1 className="text-3xl font-bold mb-2">{performer.name}</h1>
             <p className="text-pink-100">{project.title} - 出演者詳細</p>
@@ -124,22 +137,28 @@ export default function PerformerPage({
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="space-y-4">
-                <div>
+                <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">収録日</h3>
-                  <p className="mt-1 text-lg text-gray-900">{project.recordingDate}</p>
+                  <p className="mt-1 text-lg text-gray-900 font-medium">{project.recordingDate}</p>
                 </div>
-                <div>
+                <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">収録場所</h3>
                   <div className="mt-1 flex items-center space-x-2">
-                    <p className="text-lg text-gray-900">{project.location}</p>
+                    <p className="text-lg text-gray-900 font-medium">{project.location}</p>
                     {project.locationMapUrl && (
                       <a
                         href={project.locationMapUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-sm"
+                        className="text-pink-600 hover:text-pink-700 text-sm font-medium transition-colors"
                       >
-                        📍 地図を見る
+                        <span className="inline-flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          地図を見る
+                        </span>
                       </a>
                     )}
                   </div>
@@ -147,12 +166,12 @@ export default function PerformerPage({
               </div>
               <div className="space-y-4">
                 {performer.startTime && (
-                  <div>
+                  <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
                     <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">入り時間</h3>
                     <div className="mt-1 flex items-center space-x-2">
-                      <p className="text-lg text-gray-900">{performer.startTime}</p>
+                      <p className="text-lg text-gray-900 font-medium">{performer.startTime}</p>
                       {!performer.isTimeConfirmed && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">
+                        <span className="px-2 py-1 bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 rounded-full text-xs font-medium">
                           仮
                         </span>
                       )}
@@ -160,12 +179,12 @@ export default function PerformerPage({
                   </div>
                 )}
                 {performer.endTime && (
-                  <div>
+                  <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
                     <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">終わり時間</h3>
                     <div className="mt-1 flex items-center space-x-2">
-                      <p className="text-lg text-gray-900">{performer.endTime}</p>
+                      <p className="text-lg text-gray-900 font-medium">{performer.endTime}</p>
                       {!performer.isTimeConfirmed && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">
+                        <span className="px-2 py-1 bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 rounded-full text-xs font-medium">
                           仮
                         </span>
                       )}
@@ -176,8 +195,8 @@ export default function PerformerPage({
             </div>
 
             {performerPlans.length > 0 && (
-              <div className="border-t pt-6 mb-8">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">出演予定企画</h3>
+              <div className="border-t border-gray-100 pt-6 mb-8">
+                <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">出演予定企画</h3>
                 <div className="space-y-4">
                   {performerPlans
                     .sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime))
@@ -186,7 +205,7 @@ export default function PerformerPage({
                       const otherPerformers = plan.performers.filter(p => p.performerId !== performer.id);
                       
                       return (
-                        <div key={plan.id} className="bg-gray-50 rounded-lg p-4">
+                        <div key={plan.id} className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-md hover:shadow-lg transition-all duration-200">
                           <div className="flex items-start justify-between mb-3">
                             <div>
                               <h4 className="font-medium text-gray-900 text-lg">{plan.title}</h4>
@@ -199,10 +218,10 @@ export default function PerformerPage({
                                 </div>
                               )}
                             </div>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                               plan.isConfirmed
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                                ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800'
+                                : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800'
                             }`}>
                               {plan.isConfirmed ? '確定' : '仮'}
                             </span>
@@ -228,8 +247,11 @@ export default function PerformerPage({
                                   href={plan.scriptUrl} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800 text-sm"
+                                  className="text-pink-600 hover:text-pink-700 text-sm font-medium transition-colors inline-flex items-center gap-1"
                                 >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
                                   台本を見る
                                 </a>
                               ) : (
@@ -252,17 +274,17 @@ export default function PerformerPage({
             )}
 
             {timeline.length > 0 && (
-              <div className="border-t pt-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">当日のスケジュール</h3>
+              <div className="border-t border-gray-100 pt-6">
+                <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">当日のスケジュール</h3>
                 <div className="relative">
-                  <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-300"></div>
+                  <div className="absolute left-4 top-0 bottom-0 w-px bg-gradient-to-b from-pink-300 to-purple-300"></div>
                   <div className="space-y-6">
                     {timeline.map((item, index) => (
                       <div key={index} className="relative flex items-start">
-                        <div className={`absolute left-2 w-4 h-4 rounded-full border-2 border-white ${
-                          item.type === 'arrival' ? 'bg-green-500' :
-                          item.type === 'departure' ? 'bg-red-500' :
-                          'bg-blue-500'
+                        <div className={`absolute left-2 w-4 h-4 rounded-full border-2 border-white shadow-md ${
+                          item.type === 'arrival' ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
+                          item.type === 'departure' ? 'bg-gradient-to-r from-red-400 to-pink-500' :
+                          'bg-gradient-to-r from-blue-400 to-indigo-500'
                         }`}></div>
                         <div className="ml-10 min-w-0 flex-1">
                           <div className="flex items-center justify-between">
@@ -278,10 +300,10 @@ export default function PerformerPage({
                               )}
                             </div>
                             {item.isConfirmed !== undefined && (
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                                 item.isConfirmed
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-yellow-100 text-yellow-800'
+                                  ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800'
+                                  : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800'
                               }`}>
                                 {item.isConfirmed ? '確定' : '仮'}
                               </span>
@@ -296,8 +318,11 @@ export default function PerformerPage({
             )}
             
             {performerPlans.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-500">まだ企画が割り当てられていません</p>
+              <div className="text-center py-12">
+                <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="mt-2 text-gray-500">まだ企画が割り当てられていません</p>
               </div>
             )}
           </div>
