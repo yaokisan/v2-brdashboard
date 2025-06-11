@@ -14,7 +14,7 @@ import { Project, Performer, Plan } from '@/types';
 export default function AdminPerformerEditPage({ 
   params 
 }: { 
-  params: { id: string; performerId: string } 
+  params: Promise<{ id: string; performerId: string }> 
 }) {
   const [project, setProject] = useState<Project | null>(null);
   const [performer, setPerformer] = useState<Performer | null>(null);
@@ -29,15 +29,16 @@ export default function AdminPerformerEditPage({
     }
 
     const loadData = async () => {
-      const projectData = await getProject(params.id);
+      const resolvedParams = await params;
+      const projectData = await getProject(resolvedParams.id);
       if (!projectData) {
         router.push('/admin');
         return;
       }
       
-      const performerData = projectData.performers.find(p => p.id === params.performerId);
+      const performerData = projectData.performers.find(p => p.id === resolvedParams.performerId);
       if (!performerData) {
-        router.push(`/admin/project/${params.id}`);
+        router.push(`/admin/project/${resolvedParams.id}`);
         return;
       }
       
@@ -47,7 +48,7 @@ export default function AdminPerformerEditPage({
     };
 
     loadData();
-  }, [params.id, params.performerId, router]);
+  }, [params, router]);
 
   const updatePerformerData = async (updates: Partial<Performer>) => {
     if (!project || !performer) return;

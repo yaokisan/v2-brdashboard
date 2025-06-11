@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation';
 import { getProject } from '@/lib/database';
 import { Project } from '@/types';
 
-export default function ProjectPage({ params }: { params: { id: string } }) {
+export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const loadProject = async () => {
-      const projectData = await getProject(params.id);
+      const resolvedParams = await params;
+      const projectData = await getProject(resolvedParams.id);
       if (!projectData) {
         router.push('/');
         return;
@@ -23,7 +24,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
     };
 
     loadProject();
-  }, [params.id, router]);
+  }, [params, router]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">読み込み中...</div>;

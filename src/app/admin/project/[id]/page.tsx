@@ -17,7 +17,7 @@ import {
 } from '@/lib/database';
 import { Project, Performer, Plan } from '@/types';
 
-export default function ProjectEditPage({ params }: { params: { id: string } }) {
+export default function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'basic' | 'performers' | 'plans' | 'schedule'>('basic');
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,8 @@ export default function ProjectEditPage({ params }: { params: { id: string } }) 
     }
 
     const loadProject = async () => {
-      const projectData = await getProject(params.id);
+      const resolvedParams = await params;
+      const projectData = await getProject(resolvedParams.id);
       if (!projectData) {
         router.push('/admin');
         return;
@@ -42,7 +43,7 @@ export default function ProjectEditPage({ params }: { params: { id: string } }) 
     };
 
     loadProject();
-  }, [params.id, router]);
+  }, [params, router]);
 
   const updateProjectData = async (updates: Partial<Project>) => {
     if (!project) return;

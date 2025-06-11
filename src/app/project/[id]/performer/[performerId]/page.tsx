@@ -8,7 +8,7 @@ import { Project, Performer, Plan } from '@/types';
 export default function PerformerPage({ 
   params 
 }: { 
-  params: { id: string; performerId: string } 
+  params: Promise<{ id: string; performerId: string }> 
 }) {
   const [project, setProject] = useState<Project | null>(null);
   const [performer, setPerformer] = useState<Performer | null>(null);
@@ -17,15 +17,16 @@ export default function PerformerPage({
 
   useEffect(() => {
     const loadData = async () => {
-      const projectData = await getProject(params.id);
+      const resolvedParams = await params;
+      const projectData = await getProject(resolvedParams.id);
       if (!projectData) {
         router.push('/');
         return;
       }
       
-      const performerData = projectData.performers.find(p => p.id === params.performerId);
+      const performerData = projectData.performers.find(p => p.id === resolvedParams.performerId);
       if (!performerData) {
-        router.push(`/project/${params.id}`);
+        router.push(`/project/${resolvedParams.id}`);
         return;
       }
       
@@ -35,7 +36,7 @@ export default function PerformerPage({
     };
 
     loadData();
-  }, [params.id, params.performerId, router]);
+  }, [params, router]);
 
   const getPerformerPlans = (): Plan[] => {
     if (!project || !performer) return [];
@@ -269,11 +270,11 @@ export default function PerformerPage({
                               <p className="text-sm font-medium text-gray-900">
                                 {item.time} - {item.title}
                               </p>
-                              {item.role && (
-                                <p className="text-sm text-blue-600">役割: {item.role}</p>
+                              {'role' in item && (item as any).role && (
+                                <p className="text-sm text-blue-600">役割: {(item as any).role}</p>
                               )}
-                              {item.duration && (
-                                <p className="text-sm text-gray-600">収録時間: {item.duration}</p>
+                              {'duration' in item && (item as any).duration && (
+                                <p className="text-sm text-gray-600">収録時間: {(item as any).duration}</p>
                               )}
                             </div>
                             {item.isConfirmed !== undefined && (
