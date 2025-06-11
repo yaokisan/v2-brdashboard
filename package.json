@@ -13,6 +13,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
+    "@supabase/mcp-server-supabase": "^0.4.2",
     "@supabase/supabase-js": "^2.50.0",
     "@tailwindcss/postcss": "^4.1.8",
     "@types/node": "^24.0.0",

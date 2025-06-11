@@ -8,8 +8,13 @@
       "Bash(npm run dev:*)",
       "Bash(npm run build:*)",
       "Bash(rg:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(npm search supabase mcp)",
+      "Bash(find:*)",
+      "Bash(vercel:*)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": false
 }
