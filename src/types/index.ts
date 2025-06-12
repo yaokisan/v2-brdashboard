@@ -38,6 +38,7 @@ export interface Plan {
 export interface PlanPerformer {
   performerId: string;
   role: string;
+  customRole?: string;
 }
 
 export interface Schedule {

@@ -17,7 +17,7 @@ import {
 } from '@/lib/database';
 import { Project, Performer, Plan } from '@/types';
 import TimeInput from '@/components/TimeInput';
-import { calculateEndTime } from '@/lib/utils';
+import { calculateEndTime, formatTimeShort } from '@/lib/utils';
 
 export default function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
@@ -447,31 +447,6 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </button>
               </div>
               
-              {/* 企画概要セクション */}
-              {project.plans.length > 0 && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 border border-blue-100">
-                  <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 002 2v2a2 2 0 002 2v6a2 2 0 01-2 2z" />
-                    </svg>
-                    企画概要
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div className="bg-white/80 rounded-lg p-3">
-                      <div className="text-xl font-bold text-blue-600">{project.plans.length}</div>
-                      <div className="text-xs text-blue-500 font-medium">総企画数</div>
-                    </div>
-                    <div className="bg-white/80 rounded-lg p-3">
-                      <div className="text-xl font-bold text-green-600">{project.plans.filter(p => p.isConfirmed).length}</div>
-                      <div className="text-xs text-green-500 font-medium">確定済み</div>
-                    </div>
-                    <div className="bg-white/80 rounded-lg p-3">
-                      <div className="text-xl font-bold text-orange-600">{project.plans.filter(p => p.hasScript).length}</div>
-                      <div className="text-xs text-orange-500 font-medium">台本あり</div>
-                    </div>
-                  </div>
-                </div>
-              )}
               
               {/* 確定済み企画 */}
               {project.plans.filter(p => p.isConfirmed).length > 0 && (
@@ -491,6 +466,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                         updatePlanData={updatePlanData}
                         removePlan={removePlan}
                         calculateEndTime={calculateEndTime}
+                        project={project}
                       />
                     ))}
                   </div>
@@ -515,6 +491,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                         updatePlanData={updatePlanData}
                         removePlan={removePlan}
                         calculateEndTime={calculateEndTime}
+                        project={project}
                       />
                     ))}
                   </div>
@@ -682,12 +659,14 @@ function PlanCard({
   plan, 
   updatePlanData, 
   removePlan, 
-  calculateEndTime 
+  calculateEndTime,
+  project
 }: {
   plan: Plan;
   updatePlanData: (id: string, updates: Partial<Plan>) => void;
   removePlan: (id: string) => void;
   calculateEndTime: (startTime: string, duration: string) => string;
+  project: Project;
 }) {
   return (
     <details className="group bg-white/70 backdrop-blur-sm border border-white/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
@@ -813,6 +792,78 @@ function PlanCard({
           </div>
         </div>
 
+        {/* 出演者選択 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">出演者</label>
+          <div className="space-y-2">
+            {project.performers.map((performer) => {
+              const isSelected = plan.performers.some(p => p.performerId === performer.id);
+              const selectedPerformer = plan.performers.find(p => p.performerId === performer.id);
+              
+              return (
+                <div key={performer.id} className="flex items-center gap-3 p-2 bg-gray-50/50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        // 出演者を追加
+                        const updatedPerformers = [...plan.performers, { performerId: performer.id, role: 'Main' }];
+                        updatePlanData(plan.id, { performers: updatedPerformers });
+                      } else {
+                        // 出演者を削除
+                        const updatedPerformers = plan.performers.filter(p => p.performerId !== performer.id);
+                        updatePlanData(plan.id, { performers: updatedPerformers });
+                      }
+                    }}
+                    className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                  />
+                  <span className="text-sm text-gray-700 flex-1">{performer.name}様</span>
+                  
+                  {isSelected && (
+                    <select
+                      value={selectedPerformer?.role || 'Main'}
+                      onChange={(e) => {
+                        const role = e.target.value;
+                        const updatedPerformers = plan.performers.map(p =>
+                          p.performerId === performer.id ? { ...p, role } : p
+                        );
+                        updatePlanData(plan.id, { performers: updatedPerformers });
+                      }}
+                      className="text-xs border-gray-200 rounded-lg px-2 py-1 bg-white border focus:outline-none focus:ring-1 focus:ring-pink-500"
+                    >
+                      <option value="MC">MC</option>
+                      <option value="Guest">ゲスト</option>
+                      <option value="Main">メイン</option>
+                      <option value="Other">その他</option>
+                    </select>
+                  )}
+                  
+                  {isSelected && selectedPerformer?.role === 'Other' && (
+                    <input
+                      type="text"
+                      value={selectedPerformer?.customRole || ''}
+                      onChange={(e) => {
+                        const customRole = e.target.value;
+                        const updatedPerformers = plan.performers.map(p =>
+                          p.performerId === performer.id ? { ...p, customRole } : p
+                        );
+                        updatePlanData(plan.id, { performers: updatedPerformers });
+                      }}
+                      placeholder="役割を入力"
+                      className="text-xs border-gray-200 rounded-lg px-2 py-1 bg-white border focus:outline-none focus:ring-1 focus:ring-pink-500 w-20"
+                    />
+                  )}
+                </div>
+              );
+            })}
+            
+            {project.performers.length === 0 && (
+              <p className="text-sm text-gray-500 italic">出演者が登録されていません</p>
+            )}
+          </div>
+        </div>
+
         {/* 補足・参考動画URL */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">補足・参考動画URL</label>
@@ -884,7 +935,7 @@ function PerformerCard({
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {performer.startTime}〜{performer.endTime || '未設定'}
+                    {formatTimeShort(performer.startTime)}〜{performer.endTime ? formatTimeShort(performer.endTime) : '未設定'}
                   </span>
                 )}
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
