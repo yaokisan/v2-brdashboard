@@ -234,8 +234,8 @@ export default function PerformerPage({
                       const otherPerformers = plan.performers.filter(p => p.performerId !== performer.id);
                       
                       return (
-                        <details key={plan.id} className="bg-white/70 backdrop-blur-sm rounded-xl border border-white/50 shadow-md">
-                          <summary className="p-4 cursor-pointer hover:bg-white/50 transition-colors rounded-xl">
+                        <details key={plan.id} className="bg-white/70 backdrop-blur-sm rounded-xl border border-white/50 shadow-md group hover:shadow-lg transition-all">
+                          <summary className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-pink-50/50 hover:to-purple-50/50 transition-all rounded-xl list-none">
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-4">
@@ -262,6 +262,15 @@ export default function PerformerPage({
                                       {performerRole.role}
                                     </div>
                                   )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-500 group-open:hidden">タップして詳細を見る</span>
+                                <span className="text-sm text-gray-500 hidden group-open:block">タップして閉じる</span>
+                                <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center group-hover:from-pink-600 group-hover:to-purple-600 transition-all shadow-md">
+                                  <svg className="w-5 h-5 text-white transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
                                 </div>
                               </div>
                             </div>
