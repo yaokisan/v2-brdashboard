@@ -16,6 +16,7 @@ import {
   updatePlanPerformerRole
 } from '@/lib/database';
 import { Project, Performer, Plan } from '@/types';
+import TimeInput from '@/components/TimeInput';
 
 export default function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
@@ -219,13 +220,36 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">総収録時間</label>
-                  <input
-                    type="text"
-                    value={project.totalRecordingTime}
-                    onChange={(e) => updateProjectData({ totalRecordingTime: e.target.value })}
-                    className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">収録時間</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">開始時間</label>
+                      <TimeInput
+                        value={project.totalRecordingTime.includes('-') ? project.totalRecordingTime.split('-')[0].trim() : '09:00'}
+                        onChange={(newStartTime) => {
+                          const endTime = project.totalRecordingTime.includes('-') ? project.totalRecordingTime.split('-')[1].trim() : '18:00';
+                          updateProjectData({ totalRecordingTime: `${newStartTime}-${endTime}` });
+                        }}
+                        className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">終了時間</label>
+                      <TimeInput
+                        value={project.totalRecordingTime.includes('-') ? project.totalRecordingTime.split('-')[1].trim() : '18:00'}
+                        onChange={(newEndTime) => {
+                          const startTime = project.totalRecordingTime.includes('-') ? project.totalRecordingTime.split('-')[0].trim() : '09:00';
+                          updateProjectData({ totalRecordingTime: `${startTime}-${newEndTime}` });
+                        }}
+                        className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    スタジオ全体の収録時間帯（10分単位で設定可能）
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">収録場所</label>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getProjects, createProject } from '@/lib/database';
 import { Project } from '@/types';
+import { formatRecordingTime, getDayOfWeek } from '@/lib/utils';
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -165,16 +166,63 @@ export default function AdminDashboard() {
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        総収録時間 <span className="text-red-500">*</span>
+                        収録時間 <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={formData.totalRecordingTime}
-                        placeholder="例: 8時間"
-                        onChange={(e) => setFormData({...formData, totalRecordingTime: e.target.value})}
-                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
-                        required
-                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">開始時間</label>
+                          <input
+                            type="time"
+                            step="600"
+                            value={formData.totalRecordingTime.includes('-') ? formData.totalRecordingTime.split('-')[0].trim() : '09:00'}
+                            onInput={(e) => {
+                              const time = (e.target as HTMLInputElement).value;
+                              const [hours, minutes] = time.split(':');
+                              const roundedMinutes = Math.round(parseInt(minutes) / 10) * 10;
+                              const adjustedTime = `${hours}:${roundedMinutes.toString().padStart(2, '0')}`;
+                              (e.target as HTMLInputElement).value = adjustedTime;
+                            }}
+                            onChange={(e) => {
+                              const time = e.target.value;
+                              const [hours, minutes] = time.split(':');
+                              const roundedMinutes = Math.round(parseInt(minutes) / 10) * 10;
+                              const adjustedTime = `${hours}:${roundedMinutes.toString().padStart(2, '0')}`;
+                              const endTime = formData.totalRecordingTime.includes('-') ? formData.totalRecordingTime.split('-')[1].trim() : '18:00';
+                              setFormData({...formData, totalRecordingTime: `${adjustedTime}-${endTime}`});
+                            }}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">終了時間</label>
+                          <input
+                            type="time"
+                            step="600"
+                            value={formData.totalRecordingTime.includes('-') ? formData.totalRecordingTime.split('-')[1].trim() : '18:00'}
+                            onInput={(e) => {
+                              const time = (e.target as HTMLInputElement).value;
+                              const [hours, minutes] = time.split(':');
+                              const roundedMinutes = Math.round(parseInt(minutes) / 10) * 10;
+                              const adjustedTime = `${hours}:${roundedMinutes.toString().padStart(2, '0')}`;
+                              (e.target as HTMLInputElement).value = adjustedTime;
+                            }}
+                            onChange={(e) => {
+                              const time = e.target.value;
+                              const [hours, minutes] = time.split(':');
+                              const roundedMinutes = Math.round(parseInt(minutes) / 10) * 10;
+                              const adjustedTime = `${hours}:${roundedMinutes.toString().padStart(2, '0')}`;
+                              const startTime = formData.totalRecordingTime.includes('-') ? formData.totalRecordingTime.split('-')[0].trim() : '09:00';
+                              setFormData({...formData, totalRecordingTime: `${startTime}-${adjustedTime}`});
+                            }}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        スタジオ全体の収録時間帯（10分単位で設定可能）
+                      </p>
                     </div>
 
                     <div>
@@ -243,13 +291,13 @@ export default function AdminDashboard() {
                       <svg className="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0V2m6 5v6a1 1 0 01-1 1H9a1 1 0 01-1-1V7m10-5v13a2 2 0 01-2 2H5a2 2 0 01-2-2V2a2 2 0 012-2h14a2 2 0 012 2z" />
                       </svg>
-                      <span className="text-sm text-gray-600">収録日: <span className="font-medium text-gray-900">{project.recordingDate}</span></span>
+                      <span className="text-sm text-gray-600">収録日: <span className="font-medium text-gray-900">{project.recordingDate} ({getDayOfWeek(project.recordingDate)})</span></span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span className="text-sm text-gray-600">時間: <span className="font-medium text-gray-900">{project.totalRecordingTime}</span></span>
+                      <span className="text-sm text-gray-600">時間: <span className="font-medium text-gray-900">{formatRecordingTime(project.totalRecordingTime)}</span></span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

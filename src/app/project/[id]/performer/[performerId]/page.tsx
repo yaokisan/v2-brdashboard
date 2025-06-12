@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getProject } from '@/lib/database';
 import { Project, Performer, Plan } from '@/types';
+import { formatRecordingTime, getDayOfWeek } from '@/lib/utils';
 
 export default function PerformerPage({ 
   params 
@@ -138,8 +139,29 @@ export default function PerformerPage({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="space-y-4">
                 <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">収録日</h3>
-                  <p className="mt-1 text-lg text-gray-900 font-medium">{project.recordingDate}</p>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    収録日
+                  </h3>
+                  <p className="mt-1 text-lg text-gray-900 font-medium">
+                    {project.recordingDate} ({getDayOfWeek(project.recordingDate)})
+                  </p>
+                </div>
+                <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    収録時間
+                  </h3>
+                  <p className="mt-1 text-lg text-gray-900 font-medium">
+                    {formatRecordingTime(project.totalRecordingTime)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    ※スタジオ全体の収録時間帯
+                  </p>
                 </div>
                 <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">収録場所</h3>
