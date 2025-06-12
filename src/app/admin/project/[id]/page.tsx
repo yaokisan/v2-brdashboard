@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   getProject, 
@@ -67,19 +67,50 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
         ...project,
         performers: [...project.performers, newPerformer]
       });
+      
+      // 新しい出演者が追加されたことを通知
+      setTimeout(() => {
+        const element = document.querySelector(`details:last-of-type`);
+        if (element && element instanceof HTMLDetailsElement) {
+          element.open = true;
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // ハイライト効果
+          element.style.transform = 'scale(1.02)';
+          element.style.transition = 'transform 0.3s ease';
+          setTimeout(() => {
+            element.style.transform = 'scale(1)';
+          }, 300);
+        }
+      }, 100);
     }
   };
 
-  const updatePerformerData = async (performerId: string, updates: Partial<Performer>) => {
+  const updatePerformerData = useCallback(async (performerId: string, updates: Partial<Performer>) => {
     if (!project) return;
-    const success = await updatePerformer(performerId, updates);
-    if (success) {
+    
+    // ローカル状態を先に更新
+    setProject(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        performers: prev.performers.map(p => 
+          p.id === performerId ? { ...p, ...updates } : p
+        )
+      };
+    });
+    
+    // バックグラウンドでデータベースを更新
+    try {
+      await updatePerformer(performerId, updates);
+    } catch (error) {
+      console.error('Failed to update performer:', error);
+      // エラー時は元のデータを再取得
       const updatedProject = await getProject(project.id);
       if (updatedProject) {
         setProject(updatedProject);
       }
     }
-  };
+  }, [project]);
 
   const removePerformer = async (performerId: string) => {
     if (!project) return;
@@ -110,16 +141,32 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
     }
   };
 
-  const updatePlanData = async (planId: string, updates: Partial<Plan>) => {
+  const updatePlanData = useCallback(async (planId: string, updates: Partial<Plan>) => {
     if (!project) return;
-    const success = await updatePlan(planId, updates);
-    if (success) {
+    
+    // ローカル状態を先に更新
+    setProject(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        plans: prev.plans.map(p => 
+          p.id === planId ? { ...p, ...updates } : p
+        )
+      };
+    });
+    
+    // バックグラウンドでデータベースを更新
+    try {
+      await updatePlan(planId, updates);
+    } catch (error) {
+      console.error('Failed to update plan:', error);
+      // エラー時は元のデータを再取得
       const updatedProject = await getProject(project.id);
       if (updatedProject) {
         setProject(updatedProject);
       }
     }
-  };
+  }, [project]);
 
   const removePlan = async (planId: string) => {
     if (!project) return;
@@ -154,20 +201,24 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
       <nav className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
+          <div className="flex justify-between items-center h-16 sm:h-20">
+            <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
               <button
                 onClick={() => router.push('/admin')}
-                className="text-gray-600 hover:text-pink-600 transition-colors flex items-center gap-1"
+                className="text-gray-600 hover:text-pink-600 transition-colors flex items-center gap-1 flex-shrink-0"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                戻る
+                <span className="hidden xs:inline">戻る</span>
               </button>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                {project.title} - 編集ページ
-              </h1>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-sm sm:text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent truncate">
+                  <span className="hidden sm:inline">{project.title} - 編集ページ</span>
+                  <span className="sm:hidden">{project.title}</span>
+                </h1>
+                <p className="text-xs text-gray-500 sm:hidden">編集ページ</p>
+              </div>
             </div>
           </div>
         </div>
@@ -296,7 +347,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
 
           {activeTab === 'performers' && (
             <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">出演者管理</h3>
                 <button
                   onClick={addPerformer}
@@ -308,101 +359,66 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                   出演者追加
                 </button>
               </div>
-              <div className="space-y-4">
-                {project.performers.map((performer) => (
-                  <div key={performer.id} id={`performer-${performer.id}`} className="border rounded-xl p-6 bg-white/50 backdrop-blur-sm transition-all duration-300">
-                    <div className="space-y-4">
-                      {/* 名前欄 */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">出演者名</label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={performer.name}
-                            onChange={(e) => updatePerformerData(performer.id, { name: e.target.value })}
-                            className="w-full border-gray-200 rounded-xl px-4 py-2.5 pr-12 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                            placeholder="名前を入力"
-                          />
-                          <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">様</span>
-                        </div>
-                      </div>
 
-                      {/* 時間設定 */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">入り時間</label>
-                          <input
-                            type="time"
-                            value={performer.startTime || ''}
-                            onChange={(e) => updatePerformerData(performer.id, { startTime: e.target.value })}
-                            className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">終わり時間</label>
-                          <input
-                            type="time"
-                            value={performer.endTime || ''}
-                            onChange={(e) => updatePerformerData(performer.id, { endTime: e.target.value })}
-                            className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                          />
-                        </div>
-                      </div>
-
-                      {/* 時間確定チェックボックス */}
-                      <div>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={performer.isTimeConfirmed}
-                            onChange={(e) => updatePerformerData(performer.id, { isTimeConfirmed: e.target.checked })}
-                            className="rounded border-gray-300 text-pink-600 shadow-sm focus:border-pink-300 focus:ring focus:ring-pink-200 focus:ring-opacity-50"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">時間を確定する</span>
-                        </label>
-                      </div>
-
-                      {/* アクションボタン */}
-                      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                        <button
-                          onClick={() => router.push(`/project/${project.id}/performer/${performer.id}`)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center space-x-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          <span>プレビュー</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`${performer.name}様を削除してもよろしいですか？`)) {
-                              // 削除アニメーション
-                              const element = document.getElementById(`performer-${performer.id}`);
-                              if (element) {
-                                element.style.transform = 'scale(0.8)';
-                                element.style.opacity = '0';
-                                setTimeout(() => removePerformer(performer.id), 300);
-                              } else {
-                                removePerformer(performer.id);
-                              }
-                            }
-                          }}
-                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span>削除</span>
-                        </button>
-                      </div>
-                    </div>
+              {/* 確定済み出演者 */}
+              {project.performers.filter(p => p.isTimeConfirmed).length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                    <h4 className="text-lg font-semibold text-green-800">確定済み出演者</h4>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                      {project.performers.filter(p => p.isTimeConfirmed).length}名
+                    </span>
                   </div>
-                ))}
-                {project.performers.length === 0 && (
-                  <p className="text-gray-500 text-center py-8">出演者が登録されていません</p>
-                )}
-              </div>
+                  <div className="space-y-3">
+                    {project.performers.filter(p => p.isTimeConfirmed).map((performer) => (
+                      <PerformerCard 
+                        key={performer.id} 
+                        performer={performer} 
+                        project={project}
+                        updatePerformerData={updatePerformerData}
+                        removePerformer={removePerformer}
+                        router={router}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 未確定出演者 */}
+              {project.performers.filter(p => !p.isTimeConfirmed).length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-4 h-4 bg-orange-500 rounded-full animate-pulse"></div>
+                    <h4 className="text-lg font-semibold text-orange-800">未確定出演者</h4>
+                    <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                      {project.performers.filter(p => !p.isTimeConfirmed).length}名
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {project.performers.filter(p => !p.isTimeConfirmed).map((performer) => (
+                      <PerformerCard 
+                        key={performer.id} 
+                        performer={performer} 
+                        project={project}
+                        updatePerformerData={updatePerformerData}
+                        removePerformer={removePerformer}
+                        router={router}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {project.performers.length === 0 && (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <p className="mt-2 text-gray-500">出演者が登録されていません</p>
+                </div>
+              )}
+
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => {
@@ -457,137 +473,62 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </div>
               )}
               
-              <div className="space-y-6">
-                {project.plans.map((plan) => (
-                  <div key={plan.id} className="bg-white/70 backdrop-blur-sm border border-white/50 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200">
-                    <div className="grid grid-cols-1 gap-6">
-                      {/* 企画名 */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">企画名</label>
-                        <input
-                          type="text"
-                          value={plan.title}
-                          onChange={(e) => updatePlanData(plan.id, { title: e.target.value })}
-                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                          placeholder="企画名を入力"
-                        />
-                      </div>
-
-                      {/* 収録時間と予定時間 */}
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">収録時間</label>
-                          <input
-                            type="text"
-                            value={plan.duration}
-                            placeholder="例: 30分、1時間30分"
-                            onChange={(e) => updatePlanData(plan.id, { duration: e.target.value })}
-                            className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
-                            <input
-                              type="time"
-                              value={plan.scheduledTime}
-                              onChange={(e) => updatePlanData(plan.id, { scheduledTime: e.target.value })}
-                              className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">終了時間（自動計算）</label>
-                            <div className="relative">
-                              <input
-                                type="text"
-                                value={calculateEndTime(plan.scheduledTime, plan.duration)}
-                                readOnly
-                                className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-gray-50 text-gray-600 cursor-not-allowed"
-                                placeholder="自動計算されます"
-                              />
-                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">状態</label>
-                            <label className="flex items-center justify-center bg-white/70 rounded-xl px-4 py-2.5 border border-gray-200 h-full">
-                              <input
-                                type="checkbox"
-                                checked={plan.isConfirmed}
-                                onChange={(e) => updatePlanData(plan.id, { isConfirmed: e.target.checked })}
-                                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                              />
-                              <span className="ml-2 text-sm font-medium text-gray-700">確定済み</span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 台本URL */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">台本URL</label>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="url"
-                            value={plan.scriptUrl || ''}
-                            onChange={(e) => updatePlanData(plan.id, { scriptUrl: e.target.value, hasScript: !!e.target.value })}
-                            className="flex-1 border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                            placeholder="台本のURLを入力"
-                          />
-                          <button
-                            onClick={() => updatePlanData(plan.id, { scriptUrl: '', hasScript: false })}
-                            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center gap-1"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            台本なし
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* 補足・参考動画URL */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">補足・参考動画URL</label>
-                        <textarea
-                          value={plan.notes || ''}
-                          onChange={(e) => updatePlanData(plan.id, { notes: e.target.value })}
-                          rows={3}
-                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                          placeholder="補足情報や参考動画URLを入力"
-                        />
-                      </div>
-
-                      {/* アクションボタン */}
-                      <div className="flex justify-end pt-4 border-t border-gray-200">
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`「${plan.title}」を削除してもよろしいですか？`)) {
-                              removePlan(plan.id);
-                            }
-                          }}
-                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span>削除</span>
-                        </button>
-                      </div>
-                    </div>
+              {/* 確定済み企画 */}
+              {project.plans.filter(p => p.isConfirmed).length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                    <h4 className="text-lg font-semibold text-green-800">確定済み企画</h4>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                      {project.plans.filter(p => p.isConfirmed).length}件
+                    </span>
                   </div>
-                ))}
-                {project.plans.length === 0 && (
-                  <p className="text-gray-500 text-center py-8">企画が登録されていません</p>
-                )}
-              </div>
+                  <div className="space-y-3">
+                    {project.plans.filter(p => p.isConfirmed).map((plan) => (
+                      <PlanCard 
+                        key={plan.id} 
+                        plan={plan} 
+                        updatePlanData={updatePlanData}
+                        removePlan={removePlan}
+                        calculateEndTime={calculateEndTime}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 未確定企画 */}
+              {project.plans.filter(p => !p.isConfirmed).length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-4 h-4 bg-orange-500 rounded-full animate-pulse"></div>
+                    <h4 className="text-lg font-semibold text-orange-800">未確定企画</h4>
+                    <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                      {project.plans.filter(p => !p.isConfirmed).length}件
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {project.plans.filter(p => !p.isConfirmed).map((plan) => (
+                      <PlanCard 
+                        key={plan.id} 
+                        plan={plan} 
+                        updatePlanData={updatePlanData}
+                        removePlan={removePlan}
+                        calculateEndTime={calculateEndTime}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {project.plans.length === 0 && (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p className="mt-2 text-gray-500">企画が登録されていません</p>
+                </div>
+              )}
               
               <div className="mt-6 flex justify-end">
                 <button
@@ -733,5 +674,319 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
     </div>
+  );
+}
+
+// 企画カードコンポーネント
+function PlanCard({ 
+  plan, 
+  updatePlanData, 
+  removePlan, 
+  calculateEndTime 
+}: {
+  plan: Plan;
+  updatePlanData: (id: string, updates: Partial<Plan>) => void;
+  removePlan: (id: string) => void;
+  calculateEndTime: (startTime: string, duration: string) => string;
+}) {
+  return (
+    <details className="group bg-white/70 backdrop-blur-sm border border-white/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
+      <summary className="p-3 sm:p-4 cursor-pointer hover:bg-gradient-to-r hover:from-pink-50/50 hover:to-purple-50/50 transition-all rounded-xl list-none">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <h5 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
+                {plan.title || '企画名未入力'}
+              </h5>
+              <span className={`self-start px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
+                plan.isConfirmed ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+              }`}>
+                {plan.isConfirmed ? '確定済み' : '未確定'}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-sm text-gray-600">
+              {plan.scheduledTime && (
+                <span className="flex items-center gap-1">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-medium">{plan.scheduledTime}</span>
+                  {plan.duration && calculateEndTime(plan.scheduledTime, plan.duration) && (
+                    <span>〜{calculateEndTime(plan.scheduledTime, plan.duration)}</span>
+                  )}
+                </span>
+              )}
+              {plan.duration && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                  {plan.duration}
+                </span>
+              )}
+              {plan.hasScript && (
+                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                  台本あり
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            <span className="text-xs text-gray-500 group-open:hidden hidden sm:block">タップして編集</span>
+            <span className="text-xs text-gray-500 hidden group-open:block">タップして閉じる</span>
+            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center group-hover:from-pink-600 group-hover:to-purple-600 transition-all shadow-md">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </summary>
+      
+      <div className="border-t border-gray-100 p-3 sm:p-4 space-y-4">
+        {/* 企画名 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">企画名</label>
+          <input
+            type="text"
+            value={plan.title}
+            onChange={(e) => updatePlanData(plan.id, { title: e.target.value })}
+            className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+            placeholder="企画名を入力"
+          />
+        </div>
+
+        {/* 収録時間 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">収録時間</label>
+          <select
+            value={plan.duration}
+            onChange={(e) => updatePlanData(plan.id, { duration: e.target.value })}
+            className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+          >
+            <option value="">収録時間を選択</option>
+            {Array.from({ length: 18 }, (_, i) => (i + 1) * 10).map(minutes => (
+              <option key={minutes} value={`${minutes}分`}>
+                {minutes}分{minutes >= 60 && ` (${Math.floor(minutes / 60)}時間${minutes % 60 ? `${minutes % 60}分` : ''})`}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 開始時間・終了時間・確定ボタン */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
+            <input
+              type="time"
+              value={plan.scheduledTime}
+              onChange={(e) => updatePlanData(plan.id, { scheduledTime: e.target.value })}
+              className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">終了時間（自動計算）</label>
+            <input
+              type="text"
+              value={calculateEndTime(plan.scheduledTime, plan.duration)}
+              readOnly
+              className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-gray-50 text-gray-600 cursor-not-allowed text-sm"
+              placeholder="自動計算されます"
+            />
+          </div>
+        </div>
+
+        {/* 台本設定 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">台本</label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="url"
+              value={plan.scriptUrl || ''}
+              onChange={(e) => updatePlanData(plan.id, { scriptUrl: e.target.value, hasScript: !!e.target.value })}
+              className="flex-1 border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
+              placeholder="台本のURLを入力"
+            />
+            <button
+              onClick={() => updatePlanData(plan.id, { scriptUrl: '台本なし', hasScript: false })}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap"
+            >
+              台本なし
+            </button>
+          </div>
+        </div>
+
+        {/* 補足・参考動画URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">補足・参考動画URL</label>
+          <textarea
+            value={plan.notes || ''}
+            onChange={(e) => updatePlanData(plan.id, { notes: e.target.value })}
+            rows={2}
+            className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
+            placeholder="補足情報や参考動画URLを入力"
+          />
+        </div>
+
+        {/* 確定チェックボックスとアクションボタン */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-4 border-t border-gray-200">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={plan.isConfirmed}
+              onChange={(e) => updatePlanData(plan.id, { isConfirmed: e.target.checked })}
+              className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+            />
+            <span className="ml-2 text-sm font-medium text-gray-700">企画を確定する</span>
+          </label>
+          <button
+            onClick={() => {
+              if (window.confirm(`「${plan.title}」を削除してもよろしいですか？`)) {
+                removePlan(plan.id);
+              }
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>削除</span>
+          </button>
+        </div>
+      </div>
+    </details>
+  );
+}
+
+// 出演者カードコンポーネント
+function PerformerCard({ 
+  performer, 
+  project, 
+  updatePerformerData, 
+  removePerformer, 
+  router 
+}: {
+  performer: Performer;
+  project: Project;
+  updatePerformerData: (id: string, updates: Partial<Performer>) => void;
+  removePerformer: (id: string) => void;
+  router: any;
+}) {
+  return (
+    <details className="group bg-white/70 backdrop-blur-sm border border-white/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
+      <summary className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-pink-50/50 hover:to-purple-50/50 transition-all rounded-xl list-none">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
+              <h5 className="font-semibold text-gray-900 text-lg truncate">
+                {performer.name || '名前未入力'}様
+              </h5>
+              <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-600">
+                {performer.startTime && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {performer.startTime}〜{performer.endTime || '未設定'}
+                  </span>
+                )}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  performer.isTimeConfirmed 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-orange-100 text-orange-800'
+                }`}>
+                  {performer.isTimeConfirmed ? '確定済み' : '未確定'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 group-open:hidden hidden sm:block">タップして編集</span>
+            <span className="text-sm text-gray-500 hidden group-open:block">タップして閉じる</span>
+            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center group-hover:from-pink-600 group-hover:to-purple-600 transition-all shadow-md">
+              <svg className="w-4 h-4 text-white transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </summary>
+      
+      <div className="border-t border-gray-100 p-4 space-y-4">
+        {/* 名前欄 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">出演者名</label>
+          <div className="relative">
+            <input
+              type="text"
+              value={performer.name}
+              onChange={(e) => updatePerformerData(performer.id, { name: e.target.value })}
+              className="w-full border-gray-200 rounded-xl px-4 py-2.5 pr-12 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+              placeholder="名前を入力"
+            />
+            <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">様</span>
+          </div>
+        </div>
+
+        {/* 時間設定 */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">入り時間</label>
+            <input
+              type="time"
+              value={performer.startTime || ''}
+              onChange={(e) => updatePerformerData(performer.id, { startTime: e.target.value })}
+              className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">終わり時間</label>
+            <input
+              type="time"
+              value={performer.endTime || ''}
+              onChange={(e) => updatePerformerData(performer.id, { endTime: e.target.value })}
+              className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* 時間確定チェックボックス */}
+        <div>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={performer.isTimeConfirmed}
+              onChange={(e) => updatePerformerData(performer.id, { isTimeConfirmed: e.target.checked })}
+              className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
+            />
+            <span className="ml-2 text-sm text-gray-700">時間を確定する</span>
+          </label>
+        </div>
+
+        {/* アクションボタン */}
+        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+          <button
+            onClick={() => router.push(`/project/${project.id}/performer/${performer.id}`)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center space-x-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>プレビュー</span>
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm(`${performer.name}様を削除してもよろしいですか？`)) {
+                removePerformer(performer.id);
+              }
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>削除</span>
+          </button>
+        </div>
+      </div>
+    </details>
   );
 }

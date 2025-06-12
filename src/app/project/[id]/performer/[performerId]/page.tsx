@@ -235,27 +235,27 @@ export default function PerformerPage({
                       
                       return (
                         <details key={plan.id} className="bg-white/70 backdrop-blur-sm rounded-xl border border-white/50 shadow-md group hover:shadow-lg transition-all">
-                          <summary className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-pink-50/50 hover:to-purple-50/50 transition-all rounded-xl list-none">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-4">
-                                  <h4 className="font-semibold text-gray-900 text-lg">{plan.title}</h4>
-                                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${plan.isConfirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                          <summary className="p-3 sm:p-4 cursor-pointer hover:bg-gradient-to-r hover:from-pink-50/50 hover:to-purple-50/50 transition-all rounded-xl list-none">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                  <h4 className="font-semibold text-gray-900 text-base sm:text-lg truncate">{plan.title}</h4>
+                                  <span className={`self-start px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${plan.isConfirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                     {plan.isConfirmed ? '確定' : '仮'}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-sm text-gray-600">
                                   <div className="flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    {formatTimeShort(plan.scheduledTime)}
+                                    <span className="font-medium">{formatTimeShort(plan.scheduledTime)}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    {plan.duration}
+                                    <span>{plan.duration}</span>
                                   </div>
                                   {performerRole?.role && (
                                     <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
@@ -264,11 +264,11 @@ export default function PerformerPage({
                                   )}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-500 group-open:hidden">タップして詳細を見る</span>
-                                <span className="text-sm text-gray-500 hidden group-open:block">タップして閉じる</span>
+                              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                <span className="text-xs text-gray-500 group-open:hidden hidden sm:block">タップして詳細を見る</span>
+                                <span className="text-xs text-gray-500 hidden group-open:block">タップして閉じる</span>
                                 <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center group-hover:from-pink-600 group-hover:to-purple-600 transition-all shadow-md">
-                                  <svg className="w-5 h-5 text-white transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                   </svg>
                                 </div>
@@ -296,7 +296,7 @@ export default function PerformerPage({
                             <div className="grid grid-cols-1 gap-3">
                               <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-gray-700">台本:</span>
-                                {plan.hasScript && plan.scriptUrl ? (
+                                {plan.scriptUrl && plan.scriptUrl !== '台本なし' ? (
                                   <a 
                                     href={plan.scriptUrl} 
                                     target="_blank" 
@@ -309,7 +309,9 @@ export default function PerformerPage({
                                     台本を見る
                                   </a>
                                 ) : (
-                                  <span className="text-sm text-gray-500">台本なし</span>
+                                  <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+                                    台本なし
+                                  </span>
                                 )}
                               </div>
                               
