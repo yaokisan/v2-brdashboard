@@ -17,6 +17,7 @@ import {
 } from '@/lib/database';
 import { Project, Performer, Plan } from '@/types';
 import TimeInput from '@/components/TimeInput';
+import { calculateEndTime } from '@/lib/utils';
 
 export default function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
@@ -473,34 +474,57 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                       </div>
 
                       {/* 収録時間と予定時間 */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">収録時間</label>
                           <input
                             type="text"
                             value={plan.duration}
-                            placeholder="例: 30分"
+                            placeholder="例: 30分、1時間30分"
                             onChange={(e) => updatePlanData(plan.id, { duration: e.target.value })}
                             className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                           />
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">予定時間</label>
-                          <div className="flex items-center gap-3">
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
                             <input
                               type="time"
                               value={plan.scheduledTime}
                               onChange={(e) => updatePlanData(plan.id, { scheduledTime: e.target.value })}
-                              className="flex-1 border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                              className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                             />
-                            <label className="flex items-center bg-white/70 rounded-xl px-3 py-2 border border-gray-200">
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">終了時間（自動計算）</label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={calculateEndTime(plan.scheduledTime, plan.duration)}
+                                readOnly
+                                className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-gray-50 text-gray-600 cursor-not-allowed"
+                                placeholder="自動計算されます"
+                              />
+                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">状態</label>
+                            <label className="flex items-center justify-center bg-white/70 rounded-xl px-4 py-2.5 border border-gray-200 h-full">
                               <input
                                 type="checkbox"
                                 checked={plan.isConfirmed}
                                 onChange={(e) => updatePlanData(plan.id, { isConfirmed: e.target.checked })}
                                 className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                               />
-                              <span className="ml-2 text-sm font-medium text-gray-700">確定</span>
+                              <span className="ml-2 text-sm font-medium text-gray-700">確定済み</span>
                             </label>
                           </div>
                         </div>
@@ -579,55 +603,115 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           )}
 
           {activeTab === 'schedule' && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium mb-4">香盤表</h3>
+            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-6">
+                <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">香盤表</h3>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span>確定済み</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span>仮決定</span>
+                  </div>
+                </div>
+              </div>
+              
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 rounded-tl-xl">
                         時間
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                         企画名
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                         収録時間
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                        終了予定
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                         出演者
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 rounded-tr-xl">
                         状態
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-100">
                     {project.plans
-                      .sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime))
-                      .map((plan) => (
-                        <tr key={plan.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {plan.scheduledTime}
+                      .sort((a, b) => {
+                        // 確定済みを優先し、その中で時間順にソート
+                        if (a.isConfirmed && !b.isConfirmed) return -1;
+                        if (!a.isConfirmed && b.isConfirmed) return 1;
+                        return a.scheduledTime.localeCompare(b.scheduledTime);
+                      })
+                      .map((plan, index) => (
+                        <tr key={plan.id} className={`hover:bg-gray-50/50 transition-colors ${
+                          plan.isConfirmed ? 'bg-green-50/30' : 'bg-yellow-50/30'
+                        }`}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-8 rounded-full ${
+                                plan.isConfirmed ? 'bg-green-500' : 'bg-yellow-500'
+                              }`}></div>
+                              <span className="text-sm font-medium text-gray-900">
+                                {plan.scheduledTime}
+                              </span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {plan.title}
+                          <td className="px-6 py-4">
+                            <div className="font-medium text-gray-900">{plan.title}</div>
+                            {plan.hasScript && (
+                              <div className="text-xs text-blue-600 flex items-center gap-1 mt-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                台本あり
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {plan.duration}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {calculateEndTime(plan.scheduledTime, plan.duration) || '---'}
+                          </td>
                           <td className="px-6 py-4 text-sm text-gray-900">
-                            {plan.performers.map(p => {
-                              const performer = project.performers.find(perf => perf.id === p.performerId);
-                              return performer ? `${performer.name} (${p.role})` : '';
-                            }).join(', ')}
+                            <div className="flex flex-wrap gap-1">
+                              {plan.performers.map(p => {
+                                const performer = project.performers.find(perf => perf.id === p.performerId);
+                                return performer ? (
+                                  <span key={p.performerId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                    {performer.name}
+                                    {p.role && ` (${p.role})`}
+                                  </span>
+                                ) : null;
+                              })}
+                              {plan.performers.length === 0 && (
+                                <span className="text-gray-400 text-xs">出演者未設定</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                               plan.isConfirmed
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}>
+                              {plan.isConfirmed ? (
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              )}
                               {plan.isConfirmed ? '確定' : '仮'}
                             </span>
                           </td>
@@ -636,7 +720,12 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                   </tbody>
                 </table>
                 {project.plans.length === 0 && (
-                  <p className="text-gray-500 text-center py-8">企画が登録されていません</p>
+                  <div className="text-center py-12">
+                    <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="mt-2 text-gray-500">企画が登録されていません</p>
+                  </div>
                 )}
               </div>
             </div>
