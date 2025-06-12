@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getProject } from '@/lib/database';
 import { Project, Performer, Plan } from '@/types';
-import { formatRecordingTime, getDayOfWeek } from '@/lib/utils';
+import { formatRecordingTime, getDayOfWeek, formatTimeShort } from '@/lib/utils';
 
 export default function PerformerPage({ 
   params 
@@ -127,12 +127,14 @@ export default function PerformerPage({
         </div>
 
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/20">
-          <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-8 text-white">
-            <h1 className="text-3xl font-bold mb-2">{performer.name}</h1>
-            <p className="text-pink-100">{project.title} - 出演者詳細</p>
-            {performer.role && (
-              <p className="text-pink-200 mt-1">役割: {performer.role}</p>
-            )}
+          <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-8 text-white text-center">
+            <h1 className="text-3xl font-bold mb-3">{performer.name}</h1>
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="w-2 h-2 bg-white rounded-full"></div>
+              <p className="text-xl font-semibold text-white drop-shadow-sm">出演者詳細ページ</p>
+              <div className="w-2 h-2 bg-white rounded-full"></div>
+            </div>
+            <p className="text-pink-100">{project.title}</p>
           </div>
           
           <div className="p-6">
@@ -150,29 +152,16 @@ export default function PerformerPage({
                   </p>
                 </div>
                 <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    収録時間
-                  </h3>
-                  <p className="mt-1 text-lg text-gray-900 font-medium">
-                    {formatRecordingTime(project.totalRecordingTime)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    ※スタジオ全体の収録時間帯
-                  </p>
-                </div>
-                <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">収録場所</h3>
-                  <div className="mt-1 flex items-center space-x-2">
+                  <div className="mt-1 space-y-2">
                     <p className="text-lg text-gray-900 font-medium">{project.location}</p>
+                    <p className="text-sm text-gray-600">東京都渋谷区1-1-1</p>
                     {project.locationMapUrl && (
                       <a
                         href={project.locationMapUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-pink-600 hover:text-pink-700 text-sm font-medium transition-colors"
+                        className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:from-pink-600 hover:to-purple-600 transition-all duration-200"
                       >
                         <span className="inline-flex items-center gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,28 +176,36 @@ export default function PerformerPage({
                 </div>
               </div>
               <div className="space-y-4">
-                {performer.startTime && (
+                {(performer.startTime || performer.endTime) && (
                   <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">入り時間</h3>
-                    <div className="mt-1 flex items-center space-x-2">
-                      <p className="text-lg text-gray-900 font-medium">{performer.startTime}</p>
-                      {!performer.isTimeConfirmed && (
-                        <span className="px-2 py-1 bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 rounded-full text-xs font-medium">
-                          仮
-                        </span>
+                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">あなたの時間</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      {performer.startTime && (
+                        <div className="text-center">
+                          <p className="text-sm text-gray-600 mb-1">入り時間</p>
+                          <p className="text-xl font-bold text-gray-900">{formatTimeShort(performer.startTime)}</p>
+                        </div>
+                      )}
+                      {performer.endTime && (
+                        <div className="text-center">
+                          <p className="text-sm text-gray-600 mb-1">終わり時間</p>
+                          <p className="text-xl font-bold text-gray-900">{formatTimeShort(performer.endTime)}</p>
+                        </div>
                       )}
                     </div>
-                  </div>
-                )}
-                {performer.endTime && (
-                  <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">終わり時間</h3>
-                    <div className="mt-1 flex items-center space-x-2">
-                      <p className="text-lg text-gray-900 font-medium">{performer.endTime}</p>
+                    <div className="mt-4 text-center">
                       {!performer.isTimeConfirmed && (
-                        <span className="px-2 py-1 bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 rounded-full text-xs font-medium">
-                          仮
-                        </span>
+                        <div className="mb-2">
+                          <svg className="w-8 h-8 text-orange-500 mx-auto animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                        </div>
+                      )}
+                      <span className={`px-5 py-2.5 rounded-xl text-base font-bold inline-block ${performer.isTimeConfirmed ? 'bg-green-500 text-white' : 'bg-orange-500 text-white animate-pulse shadow-lg'}`}>
+                        {performer.isTimeConfirmed ? '✓ 時間確定済み' : '⚠ 時間は仮決定です'}
+                      </span>
+                      {!performer.isTimeConfirmed && (
+                        <p className="text-sm text-orange-600 mt-2 font-medium">変更の可能性があります</p>
                       )}
                     </div>
                   </div>
@@ -218,8 +215,18 @@ export default function PerformerPage({
 
             {performerPlans.length > 0 && (
               <div className="border-t border-gray-100 pt-6 mb-8">
-                <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">出演予定企画</h3>
-                <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">出演予定企画</h3>
+                  {performerPlans.some(plan => !plan.isConfirmed) && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-100 rounded-lg">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span className="text-sm font-medium text-orange-700">一部企画は仮決定です</span>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-3">
                   {performerPlans
                     .sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime))
                     .map((plan) => {
@@ -227,68 +234,85 @@ export default function PerformerPage({
                       const otherPerformers = plan.performers.filter(p => p.performerId !== performer.id);
                       
                       return (
-                        <div key={plan.id} className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-md hover:shadow-lg transition-all duration-200">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h4 className="font-medium text-gray-900 text-lg">{plan.title}</h4>
-                              <div className="text-sm text-gray-600 mt-1">
-                                {plan.scheduledTime} ({plan.duration})
+                        <details key={plan.id} className="bg-white/70 backdrop-blur-sm rounded-xl border border-white/50 shadow-md">
+                          <summary className="p-4 cursor-pointer hover:bg-white/50 transition-colors rounded-xl">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-4">
+                                  <h4 className="font-semibold text-gray-900 text-lg">{plan.title}</h4>
+                                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${plan.isConfirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                    {plan.isConfirmed ? '確定' : '仮'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                                  <div className="flex items-center gap-1">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {formatTimeShort(plan.scheduledTime)}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    {plan.duration}
+                                  </div>
+                                  {performerRole?.role && (
+                                    <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                      {performerRole.role}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              {performerRole?.role && (
-                                <div className="text-sm text-blue-600 mt-1">
-                                  あなたの役割: {performerRole.role}
+                            </div>
+                          </summary>
+                          
+                          <div className="border-t border-gray-100 p-4 space-y-4">
+                            {otherPerformers.length > 0 && (
+                              <div>
+                                <h5 className="text-sm font-semibold text-gray-700 mb-2">共演者</h5>
+                                <div className="flex flex-wrap gap-2">
+                                  {otherPerformers.map(p => {
+                                    const coPerformer = project.performers.find(perf => perf.id === p.performerId);
+                                    return coPerformer ? (
+                                      <span key={p.performerId} className="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
+                                        {coPerformer.name} ({p.role})
+                                      </span>
+                                    ) : null;
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="grid grid-cols-1 gap-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-700">台本:</span>
+                                {plan.hasScript && plan.scriptUrl ? (
+                                  <a 
+                                    href={plan.scriptUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:from-pink-600 hover:to-purple-600 transition-all duration-200 inline-flex items-center gap-1"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    台本を見る
+                                  </a>
+                                ) : (
+                                  <span className="text-sm text-gray-500">台本なし</span>
+                                )}
+                              </div>
+                              
+                              {plan.notes && (
+                                <div>
+                                  <span className="text-sm font-medium text-gray-700 block mb-1">補足情報:</span>
+                                  <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">{plan.notes}</p>
                                 </div>
                               )}
                             </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              plan.isConfirmed
-                                ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800'
-                                : 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800'
-                            }`}>
-                              {plan.isConfirmed ? '確定' : '仮'}
-                            </span>
                           </div>
-                          
-                          {otherPerformers.length > 0 && (
-                            <div className="mb-3">
-                              <h5 className="text-sm font-medium text-gray-700 mb-1">共演者</h5>
-                              <div className="text-sm text-gray-600">
-                                {otherPerformers.map(p => {
-                                  const coPerformer = project.performers.find(perf => perf.id === p.performerId);
-                                  return coPerformer ? `${coPerformer.name} (${p.role})` : '';
-                                }).join(', ')}
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="border-t pt-3 space-y-2">
-                            <div>
-                              <span className="text-sm font-medium text-gray-700">台本: </span>
-                              {plan.hasScript && plan.scriptUrl ? (
-                                <a 
-                                  href={plan.scriptUrl} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-pink-600 hover:text-pink-700 text-sm font-medium transition-colors inline-flex items-center gap-1"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                  </svg>
-                                  台本を見る
-                                </a>
-                              ) : (
-                                <span className="text-sm text-gray-500">台本なし</span>
-                              )}
-                            </div>
-                            
-                            {plan.notes && (
-                              <div>
-                                <span className="text-sm font-medium text-gray-700">補足情報: </span>
-                                <p className="text-sm text-gray-600 mt-1">{plan.notes}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        </details>
                       );
                     })}
                 </div>
@@ -297,7 +321,17 @@ export default function PerformerPage({
 
             {timeline.length > 0 && (
               <div className="border-t border-gray-100 pt-6">
-                <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">当日のスケジュール</h3>
+                <div className="flex items-center gap-3 mb-4">
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">当日のスケジュール</h3>
+                  {timeline.some(item => item.isConfirmed === false) && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-100 rounded-lg">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span className="text-sm font-medium text-orange-700">一部時間は仮決定です</span>
+                    </div>
+                  )}
+                </div>
                 <div className="relative">
                   <div className="absolute left-4 top-0 bottom-0 w-px bg-gradient-to-b from-pink-300 to-purple-300"></div>
                   <div className="space-y-6">
@@ -312,7 +346,7 @@ export default function PerformerPage({
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="text-sm font-medium text-gray-900">
-                                {item.time} - {item.title}
+                                {formatTimeShort(item.time)} - {item.title}
                               </p>
                               {'role' in item && (item as any).role && (
                                 <p className="text-sm text-blue-600">役割: {(item as any).role}</p>

@@ -12,9 +12,24 @@ export const formatRecordingTime = (timeString: string) => {
   // 「9:00-18:00」や「09:00-18:00」の形式をサポート
   if (timeString.includes('-')) {
     const [start, end] = timeString.split('-');
-    return `${start.trim()}から${end.trim()}まで`;
+    return `${start.trim()}〜${end.trim()}`;
   }
   
   // 従来の形式（「8時間」など）はそのまま表示
+  return timeString;
+};
+
+// 時間文字列を「10:00:00」から「10:00」形式に変換する関数
+export const formatTimeShort = (timeString: string) => {
+  if (!timeString) return '';
+  
+  // 「10:00:00」形式の場合は秒を削除
+  if (timeString.includes(':')) {
+    const parts = timeString.split(':');
+    if (parts.length >= 2) {
+      return `${parts[0]}:${parts[1]}`;
+    }
+  }
+  
   return timeString;
 };
