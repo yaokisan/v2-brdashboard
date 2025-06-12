@@ -47,13 +47,27 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
     loadProject();
   }, [params, router]);
 
-  const updateProjectData = async (updates: Partial<Project>) => {
+  const updateProjectData = useCallback(async (updates: Partial<Project>) => {
     if (!project) return;
-    const updated = await updateProject(project.id, updates);
-    if (updated) {
-      setProject(updated);
+    
+    // ローカル状態を先に更新
+    setProject(prev => {
+      if (!prev) return prev;
+      return { ...prev, ...updates };
+    });
+    
+    // バックグラウンドでデータベースを更新
+    try {
+      await updateProject(project.id, updates);
+    } catch (error) {
+      console.error('Failed to update project:', error);
+      // エラー時は元のデータを再取得
+      const originalProject = await getProject(project.id);
+      if (originalProject) {
+        setProject(originalProject);
+      }
     }
-  };
+  }, [project]);
 
   const addPerformer = async () => {
     if (!project) return;
