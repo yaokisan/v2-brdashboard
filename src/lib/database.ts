@@ -59,6 +59,7 @@ export async function createProject(projectData: Omit<Project, 'id' | 'performer
       recording_date: projectData.recordingDate,
       total_recording_time: projectData.totalRecordingTime,
       location: projectData.location,
+      address: projectData.address,
       location_map_url: projectData.locationMapUrl
     })
     .select()
@@ -75,6 +76,7 @@ export async function createProject(projectData: Omit<Project, 'id' | 'performer
     recordingDate: data.recording_date,
     totalRecordingTime: data.total_recording_time,
     location: data.location,
+    address: data.address,
     locationMapUrl: data.location_map_url,
     performers: [],
     plans: [],
@@ -90,6 +92,7 @@ export async function updateProject(projectId: string, updates: Partial<Project>
   if (updates.recordingDate) updateData.recording_date = updates.recordingDate
   if (updates.totalRecordingTime) updateData.total_recording_time = updates.totalRecordingTime
   if (updates.location) updateData.location = updates.location
+  if (updates.address !== undefined) updateData.address = updates.address
   if (updates.locationMapUrl !== undefined) updateData.location_map_url = updates.locationMapUrl
 
   const { error } = await supabase
@@ -103,6 +106,20 @@ export async function updateProject(projectId: string, updates: Partial<Project>
   }
 
   return getProject(projectId)
+}
+
+export async function deleteProject(projectId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', projectId)
+
+  if (error) {
+    console.error('Error deleting project:', error)
+    return false
+  }
+
+  return true
 }
 
 // 出演者関連
@@ -296,6 +313,7 @@ function transformProjectFromDB(dbProject: any): Project {
     recordingDate: dbProject.recording_date,
     totalRecordingTime: dbProject.total_recording_time,
     location: dbProject.location,
+    address: dbProject.address,
     locationMapUrl: dbProject.location_map_url,
     performers: dbProject.performers?.map(transformPerformerFromDB) || [],
     plans: dbProject.plans?.map((plan: any) => ({

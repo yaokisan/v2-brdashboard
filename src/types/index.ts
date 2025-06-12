@@ -4,6 +4,7 @@ export interface Project {
   recordingDate: string;
   totalRecordingTime: string;
   location: string;
+  address?: string;
   locationMapUrl?: string;
   performers: Performer[];
   plans: Plan[];
