@@ -309,38 +309,90 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
               </div>
               <div className="space-y-4">
                 {project.performers.map((performer) => (
-                  <div key={performer.id} className="border rounded-lg p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div key={performer.id} id={`performer-${performer.id}`} className="border rounded-xl p-6 bg-white/50 backdrop-blur-sm transition-all duration-300">
+                    <div className="space-y-4">
+                      {/* 名前欄 */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">名前</label>
-                        <input
-                          type="text"
-                          value={performer.name}
-                          onChange={(e) => updatePerformerData(performer.id, { name: e.target.value })}
-                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">出演者名</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={performer.name}
+                            onChange={(e) => updatePerformerData(performer.id, { name: e.target.value })}
+                            className="w-full border-gray-200 rounded-xl px-4 py-2.5 pr-12 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                            placeholder="名前を入力"
+                          />
+                          <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">様</span>
+                        </div>
                       </div>
+
+                      {/* 時間設定 */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">入り時間</label>
+                          <input
+                            type="time"
+                            value={performer.startTime || ''}
+                            onChange={(e) => updatePerformerData(performer.id, { startTime: e.target.value })}
+                            className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">終わり時間</label>
+                          <input
+                            type="time"
+                            value={performer.endTime || ''}
+                            onChange={(e) => updatePerformerData(performer.id, { endTime: e.target.value })}
+                            className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 時間確定チェックボックス */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">役割</label>
-                        <input
-                          type="text"
-                          value={performer.role || ''}
-                          onChange={(e) => updatePerformerData(performer.id, { role: e.target.value })}
-                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                        />
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={performer.isTimeConfirmed}
+                            onChange={(e) => updatePerformerData(performer.id, { isTimeConfirmed: e.target.checked })}
+                            className="rounded border-gray-300 text-pink-600 shadow-sm focus:border-pink-300 focus:ring focus:ring-pink-200 focus:ring-opacity-50"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">時間を確定する</span>
+                        </label>
                       </div>
-                      <div className="flex items-end space-x-2">
+
+                      {/* アクションボタン */}
+                      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                         <button
-                          onClick={() => router.push(`/admin/project/${project.id}/performer/${performer.id}`)}
-                          className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700"
+                          onClick={() => router.push(`/project/${project.id}/performer/${performer.id}`)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center space-x-1"
                         >
-                          詳細編集
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          <span>プレビュー</span>
                         </button>
                         <button
-                          onClick={() => removePerformer(performer.id)}
-                          className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700"
+                          onClick={() => {
+                            if (window.confirm(`${performer.name}様を削除してもよろしいですか？`)) {
+                              // 削除アニメーション
+                              const element = document.getElementById(`performer-${performer.id}`);
+                              if (element) {
+                                element.style.transform = 'scale(0.8)';
+                                element.style.opacity = '0';
+                                setTimeout(() => removePerformer(performer.id), 300);
+                              } else {
+                                removePerformer(performer.id);
+                              }
+                            }
+                          }}
+                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-1"
                         >
-                          削除
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span>削除</span>
                         </button>
                       </div>
                     </div>
@@ -349,6 +401,16 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 {project.performers.length === 0 && (
                   <p className="text-gray-500 text-center py-8">出演者が登録されていません</p>
                 )}
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => {
+                    alert('出演者情報が保存されました。');
+                  }}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  保存
+                </button>
               </div>
             </div>
           )}
