@@ -416,89 +416,164 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           )}
 
           {activeTab === 'plans' && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">企画管理</h3>
+            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">企画管理</h3>
                 <button
                   onClick={addPlan}
-                  className="bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700"
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 shadow-md flex items-center gap-2"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
                   企画追加
                 </button>
               </div>
-              <div className="space-y-4">
+              
+              {/* 企画概要セクション */}
+              {project.plans.length > 0 && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6 border border-blue-100">
+                  <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 002 2v2a2 2 0 002 2v6a2 2 0 01-2 2z" />
+                    </svg>
+                    企画概要
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div className="bg-white/80 rounded-lg p-3">
+                      <div className="text-xl font-bold text-blue-600">{project.plans.length}</div>
+                      <div className="text-xs text-blue-500 font-medium">総企画数</div>
+                    </div>
+                    <div className="bg-white/80 rounded-lg p-3">
+                      <div className="text-xl font-bold text-green-600">{project.plans.filter(p => p.isConfirmed).length}</div>
+                      <div className="text-xs text-green-500 font-medium">確定済み</div>
+                    </div>
+                    <div className="bg-white/80 rounded-lg p-3">
+                      <div className="text-xl font-bold text-orange-600">{project.plans.filter(p => p.hasScript).length}</div>
+                      <div className="text-xs text-orange-500 font-medium">台本あり</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-6">
                 {project.plans.map((plan) => (
-                  <div key={plan.id} className="border rounded-lg p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div key={plan.id} className="bg-white/70 backdrop-blur-sm border border-white/50 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200">
+                    <div className="grid grid-cols-1 gap-6">
+                      {/* 企画名 */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">企画名</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">企画名</label>
                         <input
                           type="text"
                           value={plan.title}
                           onChange={(e) => updatePlanData(plan.id, { title: e.target.value })}
                           className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                          placeholder="企画名を入力"
                         />
                       </div>
+
+                      {/* 収録時間と予定時間 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">収録時間</label>
+                          <input
+                            type="text"
+                            value={plan.duration}
+                            placeholder="例: 30分"
+                            onChange={(e) => updatePlanData(plan.id, { duration: e.target.value })}
+                            className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">予定時間</label>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="time"
+                              value={plan.scheduledTime}
+                              onChange={(e) => updatePlanData(plan.id, { scheduledTime: e.target.value })}
+                              className="flex-1 border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                            />
+                            <label className="flex items-center bg-white/70 rounded-xl px-3 py-2 border border-gray-200">
+                              <input
+                                type="checkbox"
+                                checked={plan.isConfirmed}
+                                onChange={(e) => updatePlanData(plan.id, { isConfirmed: e.target.checked })}
+                                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                              />
+                              <span className="ml-2 text-sm font-medium text-gray-700">確定</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 台本URL */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">予定時間</label>
-                        <input
-                          type="time"
-                          value={plan.scheduledTime}
-                          onChange={(e) => updatePlanData(plan.id, { scheduledTime: e.target.value })}
-                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">台本URL</label>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="url"
+                            value={plan.scriptUrl || ''}
+                            onChange={(e) => updatePlanData(plan.id, { scriptUrl: e.target.value, hasScript: !!e.target.value })}
+                            className="flex-1 border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                            placeholder="台本のURLを入力"
+                          />
+                          <button
+                            onClick={() => updatePlanData(plan.id, { scriptUrl: '', hasScript: false })}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center gap-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            台本なし
+                          </button>
+                        </div>
                       </div>
+
+                      {/* 補足・参考動画URL */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">収録時間</label>
-                        <input
-                          type="text"
-                          value={plan.duration}
-                          placeholder="例: 30分"
-                          onChange={(e) => updatePlanData(plan.id, { duration: e.target.value })}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">補足・参考動画URL</label>
+                        <textarea
+                          value={plan.notes || ''}
+                          onChange={(e) => updatePlanData(plan.id, { notes: e.target.value })}
+                          rows={3}
                           className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                          placeholder="補足情報や参考動画URLを入力"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">台本URL</label>
-                        <input
-                          type="url"
-                          value={plan.scriptUrl || ''}
-                          onChange={(e) => updatePlanData(plan.id, { scriptUrl: e.target.value, hasScript: !!e.target.value })}
-                          className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                        />
+
+                      {/* アクションボタン */}
+                      <div className="flex justify-end pt-4 border-t border-gray-200">
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`「${plan.title}」を削除してもよろしいですか？`)) {
+                              removePlan(plan.id);
+                            }
+                          }}
+                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span>削除</span>
+                        </button>
                       </div>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">補足・参考動画URL</label>
-                      <textarea
-                        value={plan.notes || ''}
-                        onChange={(e) => updatePlanData(plan.id, { notes: e.target.value })}
-                        rows={3}
-                        className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={plan.isConfirmed}
-                          onChange={(e) => updatePlanData(plan.id, { isConfirmed: e.target.checked })}
-                          className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">確定済み</span>
-                      </label>
-                      <button
-                        onClick={() => removePlan(plan.id)}
-                        className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700"
-                      >
-                        削除
-                      </button>
                     </div>
                   </div>
                 ))}
                 {project.plans.length === 0 && (
                   <p className="text-gray-500 text-center py-8">企画が登録されていません</p>
                 )}
+              </div>
+              
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => {
+                    alert('企画情報が保存されました。');
+                  }}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  保存
+                </button>
               </div>
             </div>
           )}

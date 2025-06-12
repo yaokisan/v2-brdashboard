@@ -12,7 +12,8 @@
       "WebFetch(domain:docs.anthropic.com)",
       "Bash(npm search supabase mcp)",
       "Bash(find:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(npx vercel build:*)"
     ],
     "deny": []
   },
