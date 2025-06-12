@@ -49,66 +49,93 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/20">
-          <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-8 text-white">
-            <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
-            <p className="text-pink-100">BEAUTY ROAD 収録プロジェクト</p>
+          <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-8 text-white text-center">
+            <h1 className="text-3xl font-bold mb-3">{project.title}</h1>
+            <p className="text-xl font-semibold text-white drop-shadow-sm">収録概要ダッシュボード</p>
           </div>
           
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="space-y-4">
-                <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    収録日
-                  </h3>
-                  <p className="mt-1 text-lg text-gray-900 font-medium">
-                    {project.recordingDate} ({getDayOfWeek(project.recordingDate)})
-                  </p>
-                </div>
-                <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    収録時間
-                  </h3>
-                  <p className="mt-1 text-lg text-gray-900 font-medium">
-                    {formatRecordingTime(project.totalRecordingTime)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    ※スタジオ全体の収録時間帯
-                  </p>
-                </div>
+          {/* Main Dashboard Information Section */}
+          <div className="bg-gradient-to-br from-pink-50/80 to-purple-50/80 backdrop-blur-sm border-b border-pink-100/50 p-8">
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  収録情報
+                </h2>
+                <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full mx-auto"></div>
               </div>
-              <div className="space-y-4">
-                <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">収録場所</h3>
-                  <div className="mt-1 flex items-center space-x-2">
-                    <p className="text-lg text-gray-900 font-medium">{project.location}</p>
-                    {project.locationMapUrl && (
-                      <a
-                        href={project.locationMapUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-pink-600 hover:text-pink-700 text-sm font-medium transition-colors"
-                      >
-                        <span className="inline-flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          地図を見る
-                        </span>
-                      </a>
-                    )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/60 shadow-lg">
+                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      収録日
+                    </h3>
+                    <p className="text-xl text-gray-900 font-bold">
+                      {project.recordingDate} ({getDayOfWeek(project.recordingDate)})
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/60 shadow-lg">
+                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      収録時間
+                    </h3>
+                    <p className="text-xl text-gray-900 font-bold">
+                      {formatRecordingTime(project.totalRecordingTime)}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2 font-medium">
+                      ※スタジオ全体の収録時間帯
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/60 shadow-lg">
+                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      収録場所
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xl text-gray-900 font-bold">{project.location}</p>
+                      {project.locationMapUrl && (
+                        <a
+                          href={project.locationMapUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:from-pink-600 hover:to-purple-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            地図を見る
+                          </span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
+          {/* Performer List Section */}
+          <div className="p-6">
             <div className="border-t border-gray-100 pt-6">
               <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
                 出演者一覧
