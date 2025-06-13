@@ -108,7 +108,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                   </h3>
                   <div className="space-y-3">
                     <p className="text-xl text-gray-900 font-bold">{project.location}</p>
-                    <p className="text-sm text-gray-600">東京都渋谷区1-1-1</p>
+                    {project.address && (
+                      <p className="text-sm text-gray-600">{project.address}</p>
+                    )}
                     {project.locationMapUrl && (
                       <a
                         href={project.locationMapUrl}
@@ -147,7 +149,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-gray-900 group-hover:text-pink-600 transition-colors">
-                          {performer.name}
+                          {performer.name}様
                         </h4>
                       </div>
                       <div className="text-right">

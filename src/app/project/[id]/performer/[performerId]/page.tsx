@@ -128,7 +128,7 @@ export default function PerformerPage({
 
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/20">
           <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-8 text-white text-center">
-            <h1 className="text-3xl font-bold mb-3">{performer.name}</h1>
+            <h1 className="text-3xl font-bold mb-3">{performer.name}様</h1>
             <div className="flex items-center justify-center gap-3 mb-2">
               <div className="w-2 h-2 bg-white rounded-full"></div>
               <p className="text-xl font-semibold text-white drop-shadow-sm">出演者詳細ページ</p>
@@ -155,7 +155,9 @@ export default function PerformerPage({
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">収録場所</h3>
                   <div className="mt-1 space-y-2">
                     <p className="text-lg text-gray-900 font-medium">{project.location}</p>
-                    <p className="text-sm text-gray-600">東京都渋谷区1-1-1</p>
+                    {project.address && (
+                      <p className="text-sm text-gray-600">{project.address}</p>
+                    )}
                     {project.locationMapUrl && (
                       <a
                         href={project.locationMapUrl}
@@ -315,12 +317,14 @@ export default function PerformerPage({
                                 )}
                               </div>
                               
-                              {plan.notes && (
-                                <div>
-                                  <span className="text-sm font-medium text-gray-700 block mb-1">補足情報:</span>
+                              <div>
+                                <span className="text-sm font-medium text-gray-700 block mb-1">補足情報:</span>
+                                {plan.notes ? (
                                   <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">{plan.notes}</p>
-                                </div>
-                              )}
+                                ) : (
+                                  <p className="text-sm text-gray-500 italic">なし</p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </details>

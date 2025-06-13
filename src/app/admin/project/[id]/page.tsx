@@ -346,15 +346,13 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                   />
                 </div>
               </div>
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() => {
-                    alert('基本情報が保存されました。');
-                  }}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
-                >
-                  保存
-                </button>
+              <div className="mt-6 flex justify-center">
+                <div className="flex items-center gap-2 text-sm text-gray-600 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>変更は自動的に保存されます</span>
+                </div>
               </div>
             </div>
           )}
@@ -433,15 +431,13 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </div>
               )}
 
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() => {
-                    alert('出演者情報が保存されました。');
-                  }}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
-                >
-                  保存
-                </button>
+              <div className="mt-6 flex justify-center">
+                <div className="flex items-center gap-2 text-sm text-gray-600 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>変更は自動的に保存されます</span>
+                </div>
               </div>
             </div>
           )}
@@ -521,15 +517,13 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </div>
               )}
               
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() => {
-                    alert('企画情報が保存されました。');
-                  }}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
-                >
-                  保存
-                </button>
+              <div className="mt-6 flex justify-center">
+                <div className="flex items-center gap-2 text-sm text-gray-600 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>変更は自動的に保存されます</span>
+                </div>
               </div>
             </div>
           )}
