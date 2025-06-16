@@ -62,12 +62,12 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
 
   // プロジェクトの収録時間範囲を取得
   const recordingTimeRange = useMemo(() => {
-    if (!project.totalRecordingTime.includes('-')) {
+    if (!project?.totalRecordingTime || !project.totalRecordingTime.includes('-')) {
       return { start: '08:00', end: '18:00' };
     }
     const [start, end] = project.totalRecordingTime.split('-');
-    return { start: start.trim(), end: end.trim() };
-  }, [project.totalRecordingTime]);
+    return { start: start?.trim() || '08:00', end: end?.trim() || '18:00' };
+  }, [project?.totalRecordingTime]);
 
   // 10分刻みのタイムスロットを生成
   const timeSlots = useMemo((): TimeSlot[] => {
@@ -91,40 +91,47 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
     const items: any[] = [];
     
     // 企画を追加
-    project.plans.forEach(plan => {
-      if (plan.scheduledTime) {
-        items.push({
-          type: 'plan',
-          id: plan.id,
-          title: plan.title,
-          startTime: plan.scheduledTime,
-          duration: parseDurationToMinutes(plan.duration),
-          plan: plan
-        });
-      }
-    });
+    if (project?.plans) {
+      project.plans.forEach(plan => {
+        if (plan?.scheduledTime) {
+          items.push({
+            type: 'plan',
+            id: plan.id,
+            title: plan.title,
+            startTime: plan.scheduledTime,
+            duration: parseDurationToMinutes(plan.duration || '30分'),
+            plan: plan
+          });
+        }
+      });
+    }
     
     // 休憩・準備時間を追加
-    scheduleItems.forEach(item => {
-      items.push({
-        type: item.type,
-        id: item.id,
-        title: item.title,
-        startTime: item.start_time,
-        duration: item.duration
+    if (scheduleItems) {
+      scheduleItems.forEach(item => {
+        if (item?.start_time) {
+          items.push({
+            type: item.type,
+            id: item.id,
+            title: item.title,
+            startTime: item.start_time,
+            duration: item.duration || 30
+          });
+        }
       });
-    });
+    }
     
     // 時間順にソート
     return items.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
-  }, [project.plans, scheduleItems]);
+  }, [project?.plans, scheduleItems]);
 
   // 各出演者の各タイムスロットでの活動を計算
   const performerActivities = useMemo(() => {
     const activities: { [key: string]: { [key: number]: PerformerActivity } } = {};
 
     // 各出演者を初期化
-    project.performers.forEach(performer => {
+    if (project?.performers) {
+      project.performers.forEach(performer => {
       activities[performer.id] = {};
       
       // 全タイムスロットを「自由時間」で初期化
@@ -185,7 +192,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
       if (item.type === 'plan') {
         itemColor = '#f97316'; // オレンジ（企画）
       } else if (item.type === 'break') {
-        itemColor = '#67e8f9'; // 薄い水色（休憩）
+        itemColor = '#fca5a5'; // 薄い赤色（休憩）
       } else if (item.type === 'preparation') {
         itemColor = '#6b7280'; // グレー（準備）
       } else {
@@ -209,7 +216,8 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
         });
       } else {
         // 休憩・準備時間の場合、全出演者に適用
-        project.performers.forEach(performer => {
+        if (project?.performers) {
+          project.performers.forEach(performer => {
           if (performer.startTime && performer.endTime) {
             const performerStart = timeToMinutes(performer.startTime);
             const performerEnd = timeToMinutes(performer.endTime);
@@ -222,17 +230,19 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                   performerId: performer.id,
                   activity: item.type as 'break' | 'preparation' | 'custom',
                   planTitle: item.title,
-                  color: item.type === 'break' ? '#67e8f9' : item.type === 'preparation' ? '#6b7280' : '#ea580c'
+                  color: item.type === 'break' ? '#fca5a5' : item.type === 'preparation' ? '#6b7280' : '#ea580c'
                 };
               }
             });
           }
-        });
+          });
+        }
       }
     });
+    }
 
     return activities;
-  }, [project.performers, timeSlots, allItems]);
+  }, [project?.performers, timeSlots, allItems]);
 
   // 全体列の項目をタイムスロットごとに整理（セル結合対応）
   const itemByTimeSlot = useMemo(() => {
@@ -249,7 +259,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
       if (item.type === 'plan') {
         itemColor = '#f97316'; // オレンジ（企画）
       } else if (item.type === 'break') {
-        itemColor = '#67e8f9'; // 薄い水色（休憩）
+        itemColor = '#fca5a5'; // 薄い赤色（休憩）
       } else if (item.type === 'preparation') {
         itemColor = '#6b7280'; // グレー（準備）
       } else {
@@ -299,14 +309,14 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
             <tr>
               <th className="bg-gray-200 border border-gray-400 p-2 text-sm font-bold w-16">種別</th>
               <th className="bg-orange-400 border border-gray-400 p-2 text-sm font-bold text-white w-24">全体</th>
-              <th className="bg-blue-200 border border-gray-400 p-2 text-sm font-bold" colSpan={project.performers.length}>
+              <th className="bg-blue-200 border border-gray-400 p-2 text-sm font-bold" colSpan={project?.performers?.length || 0}>
                 ご出演者様
               </th>
             </tr>
             <tr>
               <th className="bg-gray-200 border border-gray-400 p-2 text-sm font-bold">名前</th>
               <th className="bg-orange-400 border border-gray-400 p-2 text-sm font-bold text-white">-</th>
-              {project.performers.map(performer => (
+              {project?.performers?.map(performer => (
                 <th key={performer.id} className="bg-blue-200 border border-gray-400 p-2 text-sm font-bold min-w-20">
                   {performer.name}様
                 </th>
@@ -356,7 +366,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                   )}
 
                   {/* 出演者列 */}
-                  {project.performers.map(performer => {
+                  {project?.performers?.map(performer => {
                     const activity = performerActivities[performer.id]?.[slot.minutes];
                     
                     // 前のスロットと同じ活動かチェック
@@ -415,12 +425,12 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                         textColor = 'text-white';
                         break;
                       case 'arrival':
-                        cellContent = `入り時間 (${formatTimeShort(slot.startTime)})`;
-                        bgColor = 'bg-yellow-300';
+                        cellContent = '';
+                        bgColor = 'bg-white';
                         break;
                       case 'departure':
-                        cellContent = `終わり時間 (${formatTimeShort(slot.endTime)})`;
-                        bgColor = 'bg-yellow-300';
+                        cellContent = '';
+                        bgColor = 'bg-white';
                         break;
                       case 'wait':
                         cellContent = '待機';
