@@ -17,6 +17,8 @@ export interface Performer {
   name: string;
   startTime?: string;
   endTime?: string;
+  availableStartTime?: string;
+  availableEndTime?: string;
   isTimeConfirmed: boolean;
   assignedPlans: string[];
   role?: string;

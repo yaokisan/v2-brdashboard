@@ -132,6 +132,8 @@ export async function createPerformer(projectId: string, performerData: Omit<Per
       role: performerData.role,
       start_time: performerData.startTime,
       end_time: performerData.endTime,
+      available_start_time: performerData.availableStartTime,
+      available_end_time: performerData.availableEndTime,
       is_time_confirmed: performerData.isTimeConfirmed,
       belongings: performerData.belongings
     })
@@ -153,6 +155,8 @@ export async function updatePerformer(performerId: string, updates: Partial<Perf
   if (updates.role !== undefined) updateData.role = updates.role
   if (updates.startTime !== undefined) updateData.start_time = updates.startTime
   if (updates.endTime !== undefined) updateData.end_time = updates.endTime
+  if (updates.availableStartTime !== undefined) updateData.available_start_time = updates.availableStartTime
+  if (updates.availableEndTime !== undefined) updateData.available_end_time = updates.availableEndTime
   if (updates.isTimeConfirmed !== undefined) updateData.is_time_confirmed = updates.isTimeConfirmed
   if (updates.belongings !== undefined) updateData.belongings = updates.belongings
 
@@ -378,6 +382,8 @@ function transformPerformerFromDB(dbPerformer: any): Performer {
     role: dbPerformer.role,
     startTime: dbPerformer.start_time,
     endTime: dbPerformer.end_time,
+    availableStartTime: dbPerformer.available_start_time,
+    availableEndTime: dbPerformer.available_end_time,
     isTimeConfirmed: dbPerformer.is_time_confirmed,
     belongings: dbPerformer.belongings,
     assignedPlans: [] // この情報は別途取得が必要

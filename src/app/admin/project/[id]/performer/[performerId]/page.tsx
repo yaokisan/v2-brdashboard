@@ -166,6 +166,50 @@ export default function AdminPerformerEditPage({
                   className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                 />
               </div>
+              <div className="md:col-span-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={performer.isTimeConfirmed}
+                    onChange={(e) => updatePerformerData({ isTimeConfirmed: e.target.checked })}
+                    className="rounded border-gray-300 text-pink-600 focus:ring-pink-500 cursor-pointer"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">時間確定済み</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+            <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">調整可能時間</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">調整可能開始時間</label>
+                <input
+                  type="time"
+                  value={performer.availableStartTime || ''}
+                  onChange={(e) => updatePerformerData({ availableStartTime: e.target.value })}
+                  className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">調整可能終了時間</label>
+                <input
+                  type="time"
+                  value={performer.availableEndTime || ''}
+                  onChange={(e) => updatePerformerData({ availableEndTime: e.target.value })}
+                  className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              香盤エディタで表示される出演者の参加可能時間です。企画の調整時に参考にする時間枠を設定してください。
+            </p>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+            <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">入り時間・終わり時間</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">入り時間</label>
                 <input
@@ -184,18 +228,10 @@ export default function AdminPerformerEditPage({
                   className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                 />
               </div>
-              <div className="md:col-span-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={performer.isTimeConfirmed}
-                    onChange={(e) => updatePerformerData({ isTimeConfirmed: e.target.checked })}
-                    className="rounded border-gray-300 text-pink-600 focus:ring-pink-500 cursor-pointer"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">時間確定済み</span>
-                </label>
-              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              香盤表や出演者向けページに表示される実際の入り・終わり時間です。
+            </p>
           </div>
 
           <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">

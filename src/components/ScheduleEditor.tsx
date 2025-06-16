@@ -36,13 +36,13 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     return { start: start.trim(), end: end.trim() };
   }, [project.totalRecordingTime]);
 
-  // 出演者の参加可能時間を取得
+  // 出演者の参加可能時間を取得（調整可能時間を優先、なければ入り時間・終わり時間を使用）
   const performerAvailabilities = useMemo((): PerformerAvailability[] => {
     return project.performers.map(performer => ({
       performerId: performer.id,
       name: performer.name,
-      startTime: performer.startTime || recordingTimeRange.start,
-      endTime: performer.endTime || recordingTimeRange.end,
+      startTime: performer.availableStartTime || performer.startTime || recordingTimeRange.start,
+      endTime: performer.availableEndTime || performer.endTime || recordingTimeRange.end,
       isConfirmed: performer.isTimeConfirmed
     }));
   }, [project.performers, recordingTimeRange]);
