@@ -76,7 +76,7 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
           startTime: item.start_time,
           duration: item.duration,
           isMovable: true,
-          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#f59e0b',
+          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#ea580c',
           dbId: item.id // データベースのIDを保持
         }));
 
@@ -256,7 +256,7 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
           startTime: item.start_time,
           duration: item.duration,
           isMovable: true,
-          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#f59e0b',
+          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#ea580c',
           dbId: item.id
         }));
 
@@ -312,7 +312,7 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
           startTime: item.start_time,
           duration: item.duration,
           isMovable: true,
-          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#f59e0b',
+          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#ea580c',
           dbId: item.id
         }));
 

@@ -24,6 +24,7 @@ import { calculateEndTime, formatTimeShort } from '@/lib/utils';
 export default function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'basic' | 'performers' | 'plans' | 'schedule-editor' | 'schedule'>('basic');
+  
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
