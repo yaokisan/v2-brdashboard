@@ -954,26 +954,56 @@ function PerformerCard({
           </div>
         </div>
 
-        {/* 時間設定 */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">入り時間</label>
-            <input
-              type="time"
-              value={performer.startTime || ''}
-              onChange={(e) => updatePerformerData(performer.id, { startTime: e.target.value })}
-              className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
-            />
+        {/* 調整可能時間 */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-blue-700 mb-2">調整可能時間</label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-blue-600 mb-1">開始時間</label>
+              <input
+                type="time"
+                value={performer.availableStartTime || ''}
+                onChange={(e) => updatePerformerData(performer.id, { availableStartTime: e.target.value })}
+                className="w-full border-blue-200 rounded-xl px-3 py-2 border bg-blue-50/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-blue-600 mb-1">終了時間</label>
+              <input
+                type="time"
+                value={performer.availableEndTime || ''}
+                onChange={(e) => updatePerformerData(performer.id, { availableEndTime: e.target.value })}
+                className="w-full border-blue-200 rounded-xl px-3 py-2 border bg-blue-50/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">終わり時間</label>
-            <input
-              type="time"
-              value={performer.endTime || ''}
-              onChange={(e) => updatePerformerData(performer.id, { endTime: e.target.value })}
-              className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
-            />
+          <p className="text-xs text-blue-600 mt-1">香盤エディタで表示される参加可能時間です</p>
+        </div>
+
+        {/* 入り・終わり時間 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">入り・終わり時間</label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">入り時間</label>
+              <input
+                type="time"
+                value={performer.startTime || ''}
+                onChange={(e) => updatePerformerData(performer.id, { startTime: e.target.value })}
+                className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">終わり時間</label>
+              <input
+                type="time"
+                value={performer.endTime || ''}
+                onChange={(e) => updatePerformerData(performer.id, { endTime: e.target.value })}
+                className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
+              />
+            </div>
           </div>
+          <p className="text-xs text-gray-600 mt-1">香盤表に表示される実際の入り・終わり時間です</p>
         </div>
 
         {/* 時間確定チェックボックス */}

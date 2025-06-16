@@ -53,16 +53,20 @@ export default function AdminPerformerEditPage({
   const updatePerformerData = async (updates: Partial<Performer>) => {
     if (!project || !performer) return;
     
-    const success = await updatePerformer(performer.id, updates);
-    if (success) {
-      const updatedProject = await getProject(project.id);
-      if (updatedProject) {
-        setProject(updatedProject);
-        const updatedPerformer = updatedProject.performers.find(p => p.id === performer.id);
-        if (updatedPerformer) {
-          setPerformer(updatedPerformer);
+    try {
+      const success = await updatePerformer(performer.id, updates);
+      if (success) {
+        const updatedProject = await getProject(project.id);
+        if (updatedProject) {
+          setProject(updatedProject);
+          const updatedPerformer = updatedProject.performers.find(p => p.id === performer.id);
+          if (updatedPerformer) {
+            setPerformer(updatedPerformer);
+          }
         }
       }
+    } catch (error) {
+      console.error('Error updating performer:', error);
     }
   };
 
@@ -135,7 +139,7 @@ export default function AdminPerformerEditPage({
                 プロジェクトに戻る
               </button>
               <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                {performer.name} - 詳細編集
+                🔴 テスト変更: {performer.name} - 詳細編集
               </h1>
             </div>
           </div>
@@ -180,14 +184,14 @@ export default function AdminPerformerEditPage({
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
-            <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">調整可能時間</h3>
+          <div className="bg-red-200 border-2 border-red-500 shadow-xl rounded-2xl p-6">
+            <h3 className="text-lg font-semibold text-red-800 mb-4">🔴 テスト: 調整可能時間</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">調整可能開始時間</label>
                 <input
                   type="time"
-                  value={performer.availableStartTime || ''}
+                  value={performer?.availableStartTime || ''}
                   onChange={(e) => updatePerformerData({ availableStartTime: e.target.value })}
                   className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                 />
@@ -196,7 +200,7 @@ export default function AdminPerformerEditPage({
                 <label className="block text-sm font-medium text-gray-700 mb-2">調整可能終了時間</label>
                 <input
                   type="time"
-                  value={performer.availableEndTime || ''}
+                  value={performer?.availableEndTime || ''}
                   onChange={(e) => updatePerformerData({ availableEndTime: e.target.value })}
                   className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                 />
