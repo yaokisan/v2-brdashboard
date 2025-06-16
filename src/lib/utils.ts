@@ -12,7 +12,8 @@ export const formatRecordingTime = (timeString: string) => {
   // 「9:00-18:00」や「09:00-18:00」の形式をサポート
   if (timeString.includes('-')) {
     const [start, end] = timeString.split('-');
-    return `${start.trim()}〜${end.trim()}`;
+    // 秒を削除してから結合
+    return `${formatTimeShort(start.trim())}〜${formatTimeShort(end.trim())}`;
   }
   
   // 従来の形式（「8時間」など）はそのまま表示

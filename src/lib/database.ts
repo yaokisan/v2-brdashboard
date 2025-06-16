@@ -230,6 +230,7 @@ export async function updatePlan(planId: string, updates: Partial<Plan>): Promis
   if (updates.referenceVideoUrl !== undefined) updateData.reference_video_url = updates.referenceVideoUrl || null
   if (updates.isConfirmed !== undefined) updateData.is_confirmed = updates.isConfirmed
 
+  // Update basic plan data first
   const { error } = await supabase
     .from('plans')
     .update(updateData)
@@ -238,6 +239,38 @@ export async function updatePlan(planId: string, updates: Partial<Plan>): Promis
   if (error) {
     console.error('Error updating plan:', error)
     return false
+  }
+
+  // Handle performers update if provided
+  if (updates.performers !== undefined) {
+    // First, delete all existing performers for this plan
+    const { error: deleteError } = await supabase
+      .from('plan_performers')
+      .delete()
+      .eq('plan_id', planId)
+    
+    if (deleteError) {
+      console.error('Error deleting existing performers:', deleteError)
+      return false
+    }
+
+    // Then, insert new performers if any
+    if (updates.performers.length > 0) {
+      const performerData = updates.performers.map(p => ({
+        plan_id: planId,
+        performer_id: p.performerId,
+        role: p.role
+      }))
+
+      const { error: insertError } = await supabase
+        .from('plan_performers')
+        .insert(performerData)
+      
+      if (insertError) {
+        console.error('Error inserting performers:', insertError)
+        return false
+      }
+    }
   }
 
   return true
