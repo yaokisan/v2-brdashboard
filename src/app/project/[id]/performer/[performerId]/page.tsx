@@ -178,35 +178,9 @@ export default function PerformerPage({
                 </div>
               </div>
               <div className="space-y-4">
-                {(performer.availableStartTime || performer.availableEndTime) && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 backdrop-blur-sm rounded-xl p-4 border border-blue-100">
-                    <h3 className="text-sm font-medium text-blue-600 uppercase tracking-wide mb-3 flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      調整可能時間
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      {performer.availableStartTime && (
-                        <div className="text-center">
-                          <p className="text-sm text-blue-600 mb-1">開始時間</p>
-                          <p className="text-xl font-bold text-blue-900">{formatTimeShort(performer.availableStartTime)}</p>
-                        </div>
-                      )}
-                      {performer.availableEndTime && (
-                        <div className="text-center">
-                          <p className="text-sm text-blue-600 mb-1">終了時間</p>
-                          <p className="text-xl font-bold text-blue-900">{formatTimeShort(performer.availableEndTime)}</p>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-blue-600 mt-2 text-center">企画調整可能な時間範囲です</p>
-                  </div>
-                )}
-                
                 {(performer.startTime || performer.endTime) && (
                   <div className="bg-gray-50/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">入り・終わり時間</h3>
+                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">あなたの時間</h3>
                     <div className="grid grid-cols-2 gap-4">
                       {performer.startTime && (
                         <div className="text-center">
