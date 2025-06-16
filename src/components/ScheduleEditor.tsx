@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Project, Plan, Performer, TimelineItem, PerformerAvailability } from '@/types';
-import { formatTimeShort, parseDurationToMinutes } from '@/lib/utils';
+import { formatTimeShort, parseDurationToMinutes, calculateEndTime } from '@/lib/utils';
 
 interface ScheduleEditorProps {
   project: Project;
@@ -83,7 +83,22 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
         setTimelineItems(prev => {
           // 企画アイテムのみを保持し、スケジュールアイテムを追加
           const planItems = prev.filter(item => item.type === 'plan');
-          return [...planItems, ...scheduleTimelineItems];
+          const existingScheduleItems = prev.filter(item => item.type !== 'plan');
+          
+          // 既存のスケジュールアイテムがある場合は、ローカルの変更を保持
+          const finalScheduleItems = scheduleTimelineItems.map(dbItem => {
+            const existingItem = existingScheduleItems.find(localItem => localItem.dbId === dbItem.id);
+            if (existingItem) {
+              return {
+                ...dbItem,
+                startTime: existingItem.startTime,
+                duration: existingItem.duration
+              };
+            }
+            return dbItem;
+          });
+          
+          return [...planItems, ...finalScheduleItems];
         });
       } catch (error) {
         console.error('Failed to load schedule items:', error);
@@ -121,15 +136,15 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     const left = ((startMinutes - timelineStart) / timelineDuration) * 100;
     const width = (item.duration / timelineDuration) * 100;
     
-    // 最小幅を設定（編集しやすくするため）
-    const minWidth = editingItem === item.id ? 100 : 60; // 編集中はより広く、全体的に小さく
-    const calculatedWidth = Math.max(minWidth, (width / 100) * (timelineDuration / 60) * 10); // px単位で計算
+    // 時間に正確に対応する横幅を計算（最小幅は維持しつつ、時間比率を正確に反映）
+    const clampedLeft = Math.max(0, Math.min(100, left));
+    const clampedWidth = Math.max(0, Math.min(100 - clampedLeft, width));
     
     return {
-      left: `${Math.max(0, left)}%`,
-      width: width < 5 ? `${minWidth}px` : `${Math.min(100 - Math.max(0, left), width)}%`, // 5%未満の場合はpx指定
+      left: `${clampedLeft}%`,
+      width: `${clampedWidth}%`,
       backgroundColor: item.color,
-      minWidth: `${minWidth}px`,
+      minWidth: '40px', // 最小幅を小さくして正確性を優先
     };
   };
 
@@ -237,8 +252,25 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
         }));
 
         setTimelineItems(prev => {
+          // 企画アイテムと現在編集中のスケジュールアイテムを保持
           const planItems = prev.filter(item => item.type === 'plan');
-          return [...planItems, ...scheduleTimelineItems];
+          const existingScheduleItems = prev.filter(item => item.type !== 'plan');
+          
+          // 既存のスケジュールアイテムを更新し、新しいアイテムを追加
+          const updatedScheduleItems = scheduleTimelineItems.map(dbItem => {
+            const existingItem = existingScheduleItems.find(localItem => localItem.dbId === dbItem.id);
+            if (existingItem) {
+              // 既存のローカル変更を保持
+              return {
+                ...dbItem,
+                startTime: existingItem.startTime,
+                duration: existingItem.duration
+              };
+            }
+            return dbItem;
+          });
+          
+          return [...planItems, ...updatedScheduleItems];
         });
       }
     } catch (error) {
@@ -425,13 +457,91 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     }
   }, [resizingItem, handleResizeMove, handleResizeEnd]);
 
+  // 全体保存機能
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
+  const saveAllChanges = useCallback(async () => {
+    setIsSaving(true);
+    
+    try {
+      // 全ての企画の変更を保存
+      const planUpdates = timelineItems
+        .filter(item => item.type === 'plan' && item.planId)
+        .map(async (item) => {
+          if (item.planId) {
+            await onScheduleUpdate(item.planId, item.startTime);
+            if (onDurationUpdate) {
+              const hours = Math.floor(item.duration / 60);
+              const minutes = item.duration % 60;
+              const durationString = hours > 0 ? `${hours}時間${minutes}分` : `${minutes}分`;
+              await onDurationUpdate(item.planId, durationString);
+            }
+          }
+        });
+      
+      // 全てのスケジュールアイテムの変更を保存
+      const scheduleUpdates = timelineItems
+        .filter(item => item.type !== 'plan' && item.dbId)
+        .map(async (item) => {
+          if (item.dbId) {
+            const { updateScheduleItem } = await import('@/lib/database');
+            await updateScheduleItem(item.dbId, {
+              start_time: item.startTime,
+              duration: item.duration
+            });
+          }
+        });
+      
+      // 全ての更新を並行実行
+      await Promise.all([...planUpdates, ...scheduleUpdates]);
+      
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Failed to save changes:', error);
+      alert('保存に失敗しました。再度お試しください。');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [timelineItems, onScheduleUpdate, onDurationUpdate]);
+
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
       <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
-        <h2 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
-          香盤表エディター
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            香盤表エディター
+          </h2>
+          <div className="flex items-center gap-3">
+            {lastSaved && (
+              <span className="text-xs text-gray-500">
+                最終保存: {lastSaved.toLocaleTimeString()}
+              </span>
+            )}
+            <button
+              onClick={saveAllChanges}
+              disabled={isSaving}
+              className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  保存中...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  保存
+                </>
+              )}
+            </button>
+          </div>
+        </div>
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <span>収録時間: {project.totalRecordingTime}</span>
           <span>収録日: {project.recordingDate}</span>
@@ -568,9 +678,14 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
                       resizingItem === item.id ? 'cursor-col-resize' : 'cursor-move'
                     }`}
                   >
-                    <div className={`p-1.5 h-full flex flex-col text-white text-xs relative ${
+                    <div className={`p-1.5 h-full flex flex-col text-white text-xs relative group ${
                       editingItem === item.id ? 'bg-black/20 backdrop-blur-sm' : ''
                     }`}>
+                      {/* ホバー時の時間情報表示 */}
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity z-40 whitespace-nowrap">
+                        {formatTimeShort(item.startTime)} - {calculateEndTime(item.startTime, `${item.duration}分`)} ({item.duration}分)
+                      </div>
+                      
                       {/* 編集中のオーバーレイ */}
                       {editingItem === item.id && (
                         <div className="absolute inset-0 bg-black/30 rounded-lg flex items-center justify-center z-50">
@@ -606,30 +721,20 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
                         </div>
                       )}
                       
-                      {/* タイトル部分 */}
-                      <div className="font-medium text-center mb-1 text-xs leading-tight" title={item.title}>
-                        {item.title.length > 20 ? `${item.title.substring(0, 20)}...` : item.title}
+                      {/* タイトル部分 - より大きく表示 */}
+                      <div className="font-medium text-center flex-1 flex items-center justify-center text-sm leading-tight" title={item.title}>
+                        {item.title.length > 15 ? `${item.title.substring(0, 15)}...` : item.title}
                       </div>
                       
-                      {/* 時間情報 */}
-                      <div className="flex justify-between items-center text-xs mb-1">
-                        <span className="bg-black/20 px-1.5 py-0.5 rounded text-xs">
-                          {formatTimeShort(item.startTime)}
-                        </span>
-                        <span className="bg-black/20 px-1.5 py-0.5 rounded text-xs">
-                          {item.duration}分
-                        </span>
-                      </div>
-                      
-                      {/* ボタン類 */}
-                      <div className="flex justify-center items-end flex-1">
+                      {/* ボタン類（最下部に固定） */}
+                      <div className="flex justify-center items-end">
                         {item.type !== 'plan' && (
                           <button
                             onClick={(e) => removeItem(e, item.id)}
-                            className="bg-red-500 hover:bg-red-600 rounded w-5 h-5 flex items-center justify-center"
+                            className="bg-red-500 hover:bg-red-600 rounded w-4 h-4 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity"
                             title="削除"
                           >
-                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
