@@ -721,9 +721,9 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
                         </div>
                       )}
                       
-                      {/* タイトル部分 - より大きく表示 */}
-                      <div className="font-medium text-center flex-1 flex items-center justify-center text-sm leading-tight" title={item.title}>
-                        {item.title.length > 15 ? `${item.title.substring(0, 15)}...` : item.title}
+                      {/* タイトル部分 */}
+                      <div className="font-medium text-center flex-1 flex items-center justify-center text-xs leading-tight" title={item.title}>
+                        {item.title.length > 18 ? `${item.title.substring(0, 18)}...` : item.title}
                       </div>
                       
                       {/* ボタン類（最下部に固定） */}
