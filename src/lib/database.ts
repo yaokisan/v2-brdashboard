@@ -383,3 +383,66 @@ function transformPerformerFromDB(dbPerformer: any): Performer {
     assignedPlans: [] // この情報は別途取得が必要
   }
 }
+
+// スケジュールアイテム（休憩・準備時間）関連
+export async function createScheduleItem(projectId: string, type: 'break' | 'preparation', title: string, startTime: string, duration: number): Promise<boolean> {
+  const { error } = await supabase
+    .from('schedule_items')
+    .insert({
+      project_id: projectId,
+      type,
+      title,
+      start_time: startTime,
+      duration
+    })
+
+  if (error) {
+    console.error('Error creating schedule item:', error)
+    return false
+  }
+
+  return true
+}
+
+export async function getScheduleItems(projectId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('schedule_items')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('start_time')
+
+  if (error) {
+    console.error('Error fetching schedule items:', error)
+    return []
+  }
+
+  return data || []
+}
+
+export async function updateScheduleItem(itemId: string, updates: { title?: string; start_time?: string; duration?: number }): Promise<boolean> {
+  const { error } = await supabase
+    .from('schedule_items')
+    .update(updates)
+    .eq('id', itemId)
+
+  if (error) {
+    console.error('Error updating schedule item:', error)
+    return false
+  }
+
+  return true
+}
+
+export async function deleteScheduleItem(itemId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('schedule_items')
+    .delete()
+    .eq('id', itemId)
+
+  if (error) {
+    console.error('Error deleting schedule item:', error)
+    return false
+  }
+
+  return true
+}

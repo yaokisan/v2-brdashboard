@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getProject } from '@/lib/database';
 import { Project, Performer, Plan } from '@/types';
-import { formatRecordingTime, getDayOfWeek, formatTimeShort } from '@/lib/utils';
+import { formatRecordingTime, getDayOfWeek, formatTimeShort, calculateEndTime } from '@/lib/utils';
 
 export default function PerformerPage({ 
   params 
@@ -389,14 +389,11 @@ export default function PerformerPage({
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="text-sm font-medium text-gray-900">
-                                {formatTimeShort(item.time)} - {item.title}
+                                {item.type === 'recording' && 'duration' in item && (item as any).duration ? 
+                                  `${formatTimeShort(item.time)} - ${formatTimeShort(calculateEndTime(item.time, (item as any).duration))} ${item.title}` :
+                                  `${formatTimeShort(item.time)} - ${item.title}`
+                                }
                               </p>
-                              {'role' in item && (item as any).role && (
-                                <p className="text-sm text-blue-600">役割: {(item as any).role}</p>
-                              )}
-                              {'duration' in item && (item as any).duration && (
-                                <p className="text-sm text-gray-600">収録時間: {(item as any).duration}</p>
-                              )}
                             </div>
                             {item.isConfirmed !== undefined && (
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${

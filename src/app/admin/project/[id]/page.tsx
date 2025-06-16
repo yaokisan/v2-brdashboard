@@ -17,11 +17,13 @@ import {
 } from '@/lib/database';
 import { Project, Performer, Plan } from '@/types';
 import TimeInput from '@/components/TimeInput';
+import ScheduleEditor from '@/components/ScheduleEditor';
+import ComprehensiveSchedule from '@/components/ComprehensiveSchedule';
 import { calculateEndTime, formatTimeShort } from '@/lib/utils';
 
 export default function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<'basic' | 'performers' | 'plans' | 'schedule'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'performers' | 'plans' | 'schedule-editor' | 'schedule'>('basic');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -65,6 +67,62 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
       const originalProject = await getProject(project.id);
       if (originalProject) {
         setProject(originalProject);
+      }
+    }
+  }, [project]);
+
+  // 香盤表エディターからのスケジュール更新を処理
+  const handleScheduleUpdate = useCallback(async (planId: string, newStartTime: string) => {
+    if (!project) return;
+    
+    // ローカル状態を先に更新
+    setProject(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        plans: prev.plans.map(p => 
+          p.id === planId ? { ...p, scheduledTime: newStartTime } : p
+        )
+      };
+    });
+    
+    // バックグラウンドでデータベースを更新
+    try {
+      await updatePlan(planId, { scheduledTime: newStartTime });
+    } catch (error) {
+      console.error('Failed to update plan schedule:', error);
+      // エラー時は元のデータを再取得
+      const updatedProject = await getProject(project.id);
+      if (updatedProject) {
+        setProject(updatedProject);
+      }
+    }
+  }, [project]);
+
+  // 香盤表エディターからの尺変更を処理
+  const handleDurationUpdate = useCallback(async (planId: string, newDuration: string) => {
+    if (!project) return;
+    
+    // ローカル状態を先に更新
+    setProject(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        plans: prev.plans.map(p => 
+          p.id === planId ? { ...p, duration: newDuration } : p
+        )
+      };
+    });
+    
+    // バックグラウンドでデータベースを更新
+    try {
+      await updatePlan(planId, { duration: newDuration });
+    } catch (error) {
+      console.error('Failed to update plan duration:', error);
+      // エラー時は元のデータを再取得
+      const updatedProject = await getProject(project.id);
+      if (updatedProject) {
+        setProject(updatedProject);
       }
     }
   }, [project]);
@@ -246,6 +304,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 { key: 'basic', label: '基本情報' },
                 { key: 'performers', label: '出演者管理' },
                 { key: 'plans', label: '企画管理' },
+                { key: 'schedule-editor', label: '香盤エディタ' },
                 { key: 'schedule', label: '香盤表' }
               ].map((tab) => (
                 <button
@@ -555,7 +614,19 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
             </div>
           )}
 
+          {activeTab === 'schedule-editor' && (
+            <ScheduleEditor 
+              project={project} 
+              onScheduleUpdate={handleScheduleUpdate}
+              onDurationUpdate={handleDurationUpdate}
+            />
+          )}
+
           {activeTab === 'schedule' && (
+            <ComprehensiveSchedule project={project} />
+          )}
+
+          {activeTab === 'schedule-old' && (
             <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-6">
                 <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">香盤表</h3>

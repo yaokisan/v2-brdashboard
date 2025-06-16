@@ -55,3 +55,32 @@ export interface ScheduleItem {
   type: 'recording' | 'break' | 'preparation';
   isConfirmed: boolean;
 }
+
+// 香盤表エディター用の型
+export interface TimelineItem {
+  id: string;
+  type: 'plan' | 'break' | 'preparation';
+  title: string;
+  startTime: string;
+  duration: number; // 分単位
+  planId?: string; // typeがplanの場合
+  performers?: string[]; // 参加出演者のID
+  isMovable: boolean;
+  color?: string;
+  dbId?: string; // データベースのID（休憩・準備時間用）
+}
+
+export interface PerformerAvailability {
+  performerId: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  isConfirmed: boolean;
+}
+
+export interface ScheduleEditorState {
+  items: TimelineItem[];
+  totalStartTime: string;
+  totalEndTime: string;
+  performerAvailabilities: PerformerAvailability[];
+}
