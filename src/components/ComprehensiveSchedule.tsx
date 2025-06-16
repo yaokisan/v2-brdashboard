@@ -23,6 +23,10 @@ interface PerformerActivity {
 }
 
 export default function ComprehensiveSchedule({ project }: ComprehensiveScheduleProps) {
+  // プロジェクトデータの基本チェック
+  if (!project) {
+    return <div className="p-4 text-red-500">プロジェクトデータが見つかりません</div>;
+  }
   // 時間をHH:MM形式から分に変換
   const timeToMinutes = (timeStr: string): number => {
     const [hours, minutes] = timeStr.split(':').map(Number);
@@ -44,13 +48,16 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
       try {
         const { getScheduleItems } = await import('@/lib/database');
         const items = await getScheduleItems(project.id);
-        setScheduleItems(items);
+        setScheduleItems(items || []);
       } catch (error) {
         console.error('Failed to load schedule items:', error);
+        setScheduleItems([]);
       }
     };
     
-    loadScheduleItems();
+    if (project?.id) {
+      loadScheduleItems();
+    }
   }, [project.id]);
 
   // プロジェクトの収録時間範囲を取得
@@ -169,9 +176,21 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
       const itemStartMinutes = timeToMinutes(item.startTime);
       const itemEndMinutes = itemStartMinutes + item.duration;
 
-      // 色を生成
-      const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'];
-      const itemColor = colors[itemIndex % colors.length];
+      // 制作認識しやすい配色システム
+      // 企画: オレンジ（鮮やかで目立つ）
+      // 休憩: 薄い水色（リラックス感）
+      // 準備: グレー（作業的な時間）
+      // カスタム: 深めのオレンジ（企画と区別）
+      let itemColor;
+      if (item.type === 'plan') {
+        itemColor = '#f97316'; // オレンジ（企画）
+      } else if (item.type === 'break') {
+        itemColor = '#67e8f9'; // 薄い水色（休憩）
+      } else if (item.type === 'preparation') {
+        itemColor = '#6b7280'; // グレー（準備）
+      } else {
+        itemColor = '#ea580c'; // 深めのオレンジ（カスタム）
+      }
 
       if (item.type === 'plan') {
         // 企画の場合、参加出演者のみに適用
@@ -203,7 +222,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                   performerId: performer.id,
                   activity: item.type as 'break' | 'preparation' | 'custom',
                   planTitle: item.title,
-                  color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#f59e0b'
+                  color: item.type === 'break' ? '#67e8f9' : item.type === 'preparation' ? '#6b7280' : '#ea580c'
                 };
               }
             });
@@ -218,7 +237,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
   // 全体列の項目をタイムスロットごとに整理（セル結合対応）
   const itemByTimeSlot = useMemo(() => {
     const itemSlots: { [key: number]: { item: any; number: number; color: string; rowSpan: number } } = {};
-    const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'];
+    // 統一された配色システム
 
     // 企画のみの番号を計算
     let planNumber = 0;
@@ -226,7 +245,16 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
     allItems.forEach((item, index) => {
       const itemStartMinutes = timeToMinutes(item.startTime);
       const rowSpan = Math.ceil(item.duration / 10);
-      const itemColor = colors[index % colors.length];
+      let itemColor;
+      if (item.type === 'plan') {
+        itemColor = '#f97316'; // オレンジ（企画）
+      } else if (item.type === 'break') {
+        itemColor = '#67e8f9'; // 薄い水色（休憩）
+      } else if (item.type === 'preparation') {
+        itemColor = '#6b7280'; // グレー（準備）
+      } else {
+        itemColor = '#ea580c'; // 深めのオレンジ（カスタム）
+      }
 
       // 企画の場合のみ番号をインクリメント
       if (item.type === 'plan') {
@@ -236,7 +264,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
       itemSlots[itemStartMinutes] = {
         item,
         number: item.type === 'plan' ? planNumber : 0, // 企画のみ番号付け
-        color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : item.type === 'custom' ? '#f59e0b' : itemColor,
+        color: itemColor,
         rowSpan
       };
     });
@@ -436,22 +464,6 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
         </button>
       </div>
 
-      {/* 印刷用CSS */}
-      <style jsx>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          
-          table {
-            font-size: 10px;
-          }
-          
-          th, td {
-            padding: 2px !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
