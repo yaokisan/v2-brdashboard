@@ -104,9 +104,9 @@ export default function LoginPage() {
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                出演者の方は
+                デモは
                 <a 
-                  href="/project" 
+                  href="/demo" 
                   className="ml-1 text-pink-600 hover:text-pink-700 font-medium transition-colors duration-200 hover:underline"
                 >
                   こちらから

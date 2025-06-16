@@ -5,22 +5,57 @@ import { useRouter } from 'next/navigation';
 import { getProject } from '@/lib/database';
 import { Project } from '@/types';
 import { formatRecordingTime, getDayOfWeek, formatTimeShort } from '@/lib/utils';
+import demoData from '@/data/demo-data.json';
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const loadProject = async () => {
       const resolvedParams = await params;
-      const projectData = await getProject(resolvedParams.id);
-      if (!projectData) {
-        router.push('/');
-        return;
+      
+      // デモモードの判定
+      if (resolvedParams.id === demoData.project.id) {
+        setIsDemoMode(true);
+        
+        // セッションストレージからデモデータを取得
+        const sessionKey = 'beauty-road-demo-data';
+        const sessionData = sessionStorage.getItem(sessionKey);
+        
+        if (sessionData) {
+          const parsedData = JSON.parse(sessionData);
+          setProject(parsedData.project);
+        } else {
+          // セッションにない場合は初期データを使用
+          const initialProject = {
+            ...demoData.project,
+            performers: demoData.performers,
+            plans: demoData.plans.map(plan => ({
+              ...plan,
+              performers: plan.performers
+            }))
+          };
+          setProject(initialProject as Project);
+          
+          // セッションストレージに保存
+          sessionStorage.setItem(sessionKey, JSON.stringify({
+            project: initialProject,
+            scheduleItems: demoData.scheduleItems
+          }));
+        }
+      } else {
+        // 通常モード：データベースから取得
+        const projectData = await getProject(resolvedParams.id);
+        if (!projectData) {
+          router.push('/');
+          return;
+        }
+        setProject(projectData);
       }
       
-      setProject(projectData);
       setLoading(false);
     };
 
@@ -48,9 +83,28 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <button
+            onClick={() => router.push(isDemoMode ? '/demo' : '/')}
+            className="text-gray-600 hover:text-pink-600 transition-colors flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            {isDemoMode ? 'デモに戻る' : 'ホームに戻る'}
+          </button>
+        </div>
+
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/20">
           <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-8 text-white text-center">
             <h1 className="text-3xl font-bold mb-3">{project.title}</h1>
+            {isDemoMode && (
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+                <p className="text-lg font-semibold text-white drop-shadow-sm">デモモード</p>
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+              </div>
+            )}
             <p className="text-xl font-semibold text-white drop-shadow-sm">収録概要ダッシュボード</p>
           </div>
           
@@ -135,6 +189,22 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
           {/* Performer List Section */}
           <div className="p-6">
+            {isDemoMode && (
+              <div className="mb-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-blue-800">
+                        こちらはデモ版です。実際の出演者様ページの表示・操作をお試しいただけます。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="border-t border-gray-100 pt-6">
               <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
                 出演者一覧

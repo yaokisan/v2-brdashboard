@@ -1,0 +1,177 @@
+{
+  "project": {
+    "id": "demo-project-1",
+    "title": "BEAUTY ROAD デモ収録プロジェクト",
+    "recordingDate": "2024-07-15",
+    "location": "東京スタジオ A",
+    "address": "東京都渋谷区神南1-2-3 ビューティービル 5F",
+    "locationMapUrl": "https://maps.google.com/?q=東京都渋谷区神南1-2-3",
+    "totalRecordingTime": "09:00-17:00",
+    "createdAt": "2024-06-15T00:00:00Z",
+    "updatedAt": "2024-06-15T00:00:00Z"
+  },
+  "performers": [
+    {
+      "id": "demo-performer-1",
+      "name": "田中花音",
+      "startTime": "09:30",
+      "endTime": "16:30",
+      "availableStartTime": "09:00",
+      "availableEndTime": "17:00",
+      "isTimeConfirmed": true,
+      "belongings": "・メイク道具一式\n・衣装3着（カジュアル・フォーマル・コスプレ）\n・アクセサリー各種\n・ヘアアイロン\n・鏡\n・タオル3枚"
+    },
+    {
+      "id": "demo-performer-2", 
+      "name": "佐藤美咲",
+      "startTime": "10:00",
+      "endTime": "15:00",
+      "availableStartTime": "09:30",
+      "availableEndTime": "15:30",
+      "isTimeConfirmed": true,
+      "belongings": "・メイク道具\n・私服とドレス\n・靴2足\n・ヘアピン・ゴム\n・飲み物"
+    },
+    {
+      "id": "demo-performer-3",
+      "name": "鈴木あかり", 
+      "startTime": "11:00",
+      "endTime": "16:00",
+      "availableStartTime": "10:30",
+      "availableEndTime": "16:30",
+      "isTimeConfirmed": false,
+      "belongings": "・コスプレ衣装\n・ウィッグ2個\n・メイク用品\n・小道具セット\n・充電器"
+    }
+  ],
+  "plans": [
+    {
+      "id": "demo-plan-1",
+      "title": "オープニング撮影",
+      "scheduledTime": "10:30",
+      "duration": "45分",
+      "isConfirmed": true,
+      "hasScript": true,
+      "scriptUrl": "#",
+      "notes": "明るい雰囲気で自然な笑顔を心がけてください。3名での掛け合いシーンがメインです。",
+      "performers": [
+        {
+          "performerId": "demo-performer-1",
+          "role": "メイン"
+        },
+        {
+          "performerId": "demo-performer-2", 
+          "role": "サブ"
+        },
+        {
+          "performerId": "demo-performer-3",
+          "role": "サポート"
+        }
+      ]
+    },
+    {
+      "id": "demo-plan-2",
+      "title": "個人インタビュー（田中さん）",
+      "scheduledTime": "11:30",
+      "duration": "30分",
+      "isConfirmed": true,
+      "hasScript": true,
+      "scriptUrl": "#",
+      "notes": "リラックスした環境での個人インタビューです。自然体でお話しください。",
+      "performers": [
+        {
+          "performerId": "demo-performer-1",
+          "role": "インタビュイー"
+        }
+      ]
+    },
+    {
+      "id": "demo-plan-3",
+      "title": "コラボレーション企画",
+      "scheduledTime": "13:00",
+      "duration": "60分",
+      "isConfirmed": true,
+      "hasScript": false,
+      "scriptUrl": "台本なし",
+      "notes": "2名でのコラボ企画です。自由な発想での対話を重視します。",
+      "performers": [
+        {
+          "performerId": "demo-performer-1",
+          "role": "パートナー1"
+        },
+        {
+          "performerId": "demo-performer-2",
+          "role": "パートナー2"
+        }
+      ]
+    },
+    {
+      "id": "demo-plan-4",
+      "title": "特別コンテンツ撮影",
+      "scheduledTime": "14:30",
+      "duration": "40分",
+      "isConfirmed": false,
+      "hasScript": true,
+      "scriptUrl": "#",
+      "notes": "コスプレでの特別企画です。時間は仮決定のため変更の可能性があります。",
+      "performers": [
+        {
+          "performerId": "demo-performer-3",
+          "role": "メイン"
+        }
+      ]
+    },
+    {
+      "id": "demo-plan-5",
+      "title": "エンディング撮影",
+      "scheduledTime": "15:30",
+      "duration": "30分",
+      "isConfirmed": true, 
+      "hasScript": true,
+      "scriptUrl": "#",
+      "notes": "全員でのエンディングシーンです。感謝の気持ちを込めて撮影しましょう。",
+      "performers": [
+        {
+          "performerId": "demo-performer-1",
+          "role": "メイン"
+        },
+        {
+          "performerId": "demo-performer-2",
+          "role": "サブ"
+        },
+        {
+          "performerId": "demo-performer-3", 
+          "role": "サブ"
+        }
+      ]
+    }
+  ],
+  "scheduleItems": [
+    {
+      "id": "demo-schedule-1",
+      "type": "preparation",
+      "title": "機材セットアップ", 
+      "start_time": "09:00",
+      "duration": 30
+    },
+    {
+      "id": "demo-schedule-2",
+      "type": "break",
+      "title": "昼休憩",
+      "start_time": "12:00", 
+      "duration": 60
+    },
+    {
+      "id": "demo-schedule-3",
+      "type": "break",
+      "title": "小休憩",
+      "start_time": "14:00",
+      "duration": 15
+    },
+    {
+      "id": "demo-schedule-4",
+      "type": "custom",
+      "title": "撮影機材調整",
+      "start_time": "15:15",
+      "duration": 15
+    }
+  ]
+}
