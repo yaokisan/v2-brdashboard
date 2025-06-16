@@ -385,7 +385,7 @@ function transformPerformerFromDB(dbPerformer: any): Performer {
 }
 
 // スケジュールアイテム（休憩・準備時間）関連
-export async function createScheduleItem(projectId: string, type: 'break' | 'preparation', title: string, startTime: string, duration: number): Promise<boolean> {
+export async function createScheduleItem(projectId: string, type: 'break' | 'preparation' | 'custom', title: string, startTime: string, duration: number): Promise<boolean> {
   const { error } = await supabase
     .from('schedule_items')
     .insert({

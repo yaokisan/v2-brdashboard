@@ -59,7 +59,7 @@ export interface ScheduleItem {
 // 香盤表エディター用の型
 export interface TimelineItem {
   id: string;
-  type: 'plan' | 'break' | 'preparation';
+  type: 'plan' | 'break' | 'preparation' | 'custom';
   title: string;
   startTime: string;
   duration: number; // 分単位
@@ -67,7 +67,7 @@ export interface TimelineItem {
   performers?: string[]; // 参加出演者のID
   isMovable: boolean;
   color?: string;
-  dbId?: string; // データベースのID（休憩・準備時間用）
+  dbId?: string; // データベースのID（休憩・準備時間・カスタム用）
 }
 
 export interface PerformerAvailability {

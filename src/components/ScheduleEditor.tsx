@@ -71,12 +71,12 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
         
         const scheduleTimelineItems = scheduleItems.map((item: any) => ({
           id: item.id,
-          type: item.type as 'break' | 'preparation',
+          type: item.type as 'break' | 'preparation' | 'custom',
           title: item.title,
           startTime: item.start_time,
           duration: item.duration,
           isMovable: true,
-          color: item.type === 'break' ? '#6b7280' : '#8b5cf6',
+          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#f59e0b',
           dbId: item.id // データベースのIDを保持
         }));
 
@@ -169,6 +169,15 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartTime, setResizeStartTime] = useState<string>('');
   const [resizeStartDuration, setResizeStartDuration] = useState(0);
+  
+  // カスタムアイテム追加のモーダル状態
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customTitle, setCustomTitle] = useState('');
+  const [customDuration, setCustomDuration] = useState(10);
+  
+  // 全体保存機能
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // ドラッグ開始
   const handleDragStart = useCallback((e: React.DragEvent, itemId: string) => {
@@ -242,12 +251,12 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
         
         const scheduleTimelineItems = scheduleItems.map((item: any) => ({
           id: item.id,
-          type: item.type as 'break' | 'preparation',
+          type: item.type as 'break' | 'preparation' | 'custom',
           title: item.title,
           startTime: item.start_time,
           duration: item.duration,
           isMovable: true,
-          color: item.type === 'break' ? '#6b7280' : '#8b5cf6',
+          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#f59e0b',
           dbId: item.id
         }));
 
@@ -277,6 +286,67 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
       console.error('Failed to add schedule item:', error);
     }
   }, [project.id]);
+
+  // カスタムアイテムを追加
+  const addCustomItem = useCallback(async () => {
+    if (!customTitle.trim()) return;
+    
+    // 現在の時間を10分刻みにスナップ
+    const currentMinutes = timeToMinutes('12:00'); // デフォルト時間
+    const snappedMinutes = snapToTenMinutes(currentMinutes);
+    const snappedStartTime = minutesToTime(snappedMinutes);
+    
+    try {
+      const { createScheduleItem } = await import('@/lib/database');
+      const success = await createScheduleItem(project.id, 'custom', customTitle, snappedStartTime, customDuration);
+      
+      if (success) {
+        // データベースから最新のデータを再取得
+        const { getScheduleItems } = await import('@/lib/database');
+        const scheduleItems = await getScheduleItems(project.id);
+        
+        const scheduleTimelineItems = scheduleItems.map((item: any) => ({
+          id: item.id,
+          type: item.type as 'break' | 'preparation' | 'custom',
+          title: item.title,
+          startTime: item.start_time,
+          duration: item.duration,
+          isMovable: true,
+          color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#f59e0b',
+          dbId: item.id
+        }));
+
+        setTimelineItems(prev => {
+          // 企画アイテムと現在編集中のスケジュールアイテムを保持
+          const planItems = prev.filter(item => item.type === 'plan');
+          const existingScheduleItems = prev.filter(item => item.type !== 'plan');
+          
+          // 既存のスケジュールアイテムを更新し、新しいアイテムを追加
+          const updatedScheduleItems = scheduleTimelineItems.map(dbItem => {
+            const existingItem = existingScheduleItems.find(localItem => localItem.dbId === dbItem.id);
+            if (existingItem) {
+              // 既存のローカル変更を保持
+              return {
+                ...dbItem,
+                startTime: existingItem.startTime,
+                duration: existingItem.duration
+              };
+            }
+            return dbItem;
+          });
+          
+          return [...planItems, ...updatedScheduleItems];
+        });
+        
+        // モーダルを閉じてリセット
+        setShowCustomModal(false);
+        setCustomTitle('');
+        setCustomDuration(10);
+      }
+    } catch (error) {
+      console.error('Failed to add custom item:', error);
+    }
+  }, [project.id, customTitle, customDuration]);
 
   // アイテムを削除（企画以外のみ）
   const removeItem = useCallback(async (e: React.MouseEvent, itemId: string) => {
@@ -456,10 +526,6 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
       };
     }
   }, [resizingItem, handleResizeMove, handleResizeEnd]);
-
-  // 全体保存機能
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const saveAllChanges = useCallback(async () => {
     setIsSaving(true);
@@ -569,6 +635,15 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             準備時間を追加
+          </button>
+          <button
+            onClick={() => setShowCustomModal(true)}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            カスタム項目を追加
           </button>
         </div>
       </div>
@@ -773,8 +848,71 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
             <div className="w-4 h-4 bg-purple-500 rounded"></div>
             <span>準備時間</span>
           </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-orange-500 rounded"></div>
+            <span>カスタム項目</span>
+          </div>
         </div>
       </div>
+
+      {/* カスタム項目追加モーダル */}
+      {showCustomModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-2xl max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">カスタム項目を追加</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  項目名
+                </label>
+                <input
+                  type="text"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  placeholder="例: 移動時間、セットアップ、その他"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  autoFocus
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  時間（分）
+                </label>
+                <input
+                  type="number"
+                  value={customDuration}
+                  onChange={(e) => setCustomDuration(parseInt(e.target.value) || 10)}
+                  min="10"
+                  step="10"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={addCustomItem}
+                disabled={!customTitle.trim()}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                追加
+              </button>
+              <button
+                onClick={() => {
+                  setShowCustomModal(false);
+                  setCustomTitle('');
+                  setCustomDuration(10);
+                }}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

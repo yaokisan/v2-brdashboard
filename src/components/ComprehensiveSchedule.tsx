@@ -16,7 +16,7 @@ interface TimeSlot {
 
 interface PerformerActivity {
   performerId: string;
-  activity: 'plan' | 'wait' | 'arrival' | 'departure' | 'free';
+  activity: 'plan' | 'wait' | 'arrival' | 'departure' | 'free' | 'break' | 'preparation' | 'custom';
   planId?: string;
   planTitle?: string;
   color?: string;
@@ -201,9 +201,9 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                   slot.minutes < Math.min(itemEndMinutes, performerEnd)) {
                 activities[performer.id][slot.minutes] = {
                   performerId: performer.id,
-                  activity: item.type as 'plan',
+                  activity: item.type as 'break' | 'preparation' | 'custom',
                   planTitle: item.title,
-                  color: item.type === 'break' ? '#6b7280' : '#8b5cf6'
+                  color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : '#f59e0b'
                 };
               }
             });
@@ -236,7 +236,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
       itemSlots[itemStartMinutes] = {
         item,
         number: item.type === 'plan' ? planNumber : 0, // 企画のみ番号付け
-        color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : itemColor,
+        color: item.type === 'break' ? '#6b7280' : item.type === 'preparation' ? '#8b5cf6' : item.type === 'custom' ? '#f59e0b' : itemColor,
         rowSpan
       };
     });
@@ -381,6 +381,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                         break;
                       case 'break':
                       case 'preparation':
+                      case 'custom':
                         cellContent = activity.planTitle || '';
                         bgColor = '';
                         textColor = 'text-white';
@@ -408,7 +409,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                       <td 
                         key={performer.id}
                         className={`border border-gray-400 p-1 text-xs text-center ${bgColor} ${textColor}`}
-                        style={(activity?.activity === 'plan' || activity?.activity === 'break' || activity?.activity === 'preparation') ? { backgroundColor: activity.color } : {}}
+                        style={(activity?.activity === 'plan' || activity?.activity === 'break' || activity?.activity === 'preparation' || activity?.activity === 'custom') ? { backgroundColor: activity.color } : {}}
                         rowSpan={rowSpan > 1 ? rowSpan : undefined}
                       >
                         {cellContent}
