@@ -215,6 +215,34 @@ export default function PerformerPage({
               </div>
             </div>
 
+            {performer.belongings && (
+              <div className="border-t border-gray-100 pt-6 mb-8">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    持ち物チェックリスト
+                  </h3>
+                  <div className="space-y-2">
+                    {performer.belongings.split('\n').filter(item => item.trim()).map((item, index) => (
+                      <div key={index} className="flex items-start gap-3 p-2 bg-white/70 rounded-lg border border-blue-200/50">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="w-4 h-4 border-2 border-blue-400 rounded bg-white"></div>
+                        </div>
+                        <span className="text-gray-700 flex-1">{item.replace(/^[・・・]+/, '').trim()}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-100/70 rounded-lg">
+                    <p className="text-sm text-blue-800 font-medium">
+                      💡 当日忘れ物がないよう、事前にご確認をお願いいたします。
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {performerPlans.length > 0 && (
               <div className="border-t border-gray-100 pt-6 mb-8">
                 <div className="flex items-center gap-3 mb-4">

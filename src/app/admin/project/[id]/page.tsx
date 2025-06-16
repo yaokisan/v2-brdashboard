@@ -1046,6 +1046,19 @@ function PerformerCard({
           </label>
         </div>
 
+        {/* 持ち物欄 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">持ち物</label>
+          <textarea
+            value={performer.belongings || ''}
+            onChange={(e) => updatePerformerData(performer.id, { belongings: e.target.value })}
+            placeholder="持参していただく物を入力してください"
+            rows={3}
+            className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm resize-none"
+          />
+          <p className="text-xs text-gray-500 mt-1">改行で区切って入力してください</p>
+        </div>
+
         {/* アクションボタン */}
         <div className="flex justify-between items-center pt-4 border-t border-gray-200">
           <button

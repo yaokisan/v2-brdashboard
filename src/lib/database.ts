@@ -132,7 +132,8 @@ export async function createPerformer(projectId: string, performerData: Omit<Per
       role: performerData.role,
       start_time: performerData.startTime,
       end_time: performerData.endTime,
-      is_time_confirmed: performerData.isTimeConfirmed
+      is_time_confirmed: performerData.isTimeConfirmed,
+      belongings: performerData.belongings
     })
     .select()
     .single()
@@ -153,6 +154,7 @@ export async function updatePerformer(performerId: string, updates: Partial<Perf
   if (updates.startTime !== undefined) updateData.start_time = updates.startTime
   if (updates.endTime !== undefined) updateData.end_time = updates.endTime
   if (updates.isTimeConfirmed !== undefined) updateData.is_time_confirmed = updates.isTimeConfirmed
+  if (updates.belongings !== undefined) updateData.belongings = updates.belongings
 
   const { error } = await supabase
     .from('performers')
@@ -377,6 +379,7 @@ function transformPerformerFromDB(dbPerformer: any): Performer {
     startTime: dbPerformer.start_time,
     endTime: dbPerformer.end_time,
     isTimeConfirmed: dbPerformer.is_time_confirmed,
+    belongings: dbPerformer.belongings,
     assignedPlans: [] // この情報は別途取得が必要
   }
 }

@@ -199,6 +199,23 @@ export default function AdminPerformerEditPage({
           </div>
 
           <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+            <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">持ち物一覧</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">持参していただく物</label>
+              <textarea
+                value={performer.belongings || ''}
+                onChange={(e) => updatePerformerData({ belongings: e.target.value })}
+                placeholder="例：&#10;・台本&#10;・名札&#10;・筆記用具&#10;・水分&#10;・タオル"
+                rows={6}
+                className="w-full border-gray-200 rounded-xl px-4 py-3 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 resize-none"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                改行で区切って入力してください。演者側のページでは見やすく表示されます。
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
             <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">企画への参加設定</h3>
             <div className="space-y-4">
               {project.plans.map((plan) => {

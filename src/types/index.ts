@@ -20,6 +20,7 @@ export interface Performer {
   isTimeConfirmed: boolean;
   assignedPlans: string[];
   role?: string;
+  belongings?: string;
 }
 
 export interface Plan {
