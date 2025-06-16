@@ -16,7 +16,7 @@ interface TimeSlot {
 
 interface PerformerActivity {
   performerId: string;
-  activity: 'plan' | 'wait' | 'arrival' | 'free';
+  activity: 'plan' | 'wait' | 'arrival' | 'departure' | 'free';
   planId?: string;
   planTitle?: string;
   color?: string;
