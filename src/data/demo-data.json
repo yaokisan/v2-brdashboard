@@ -40,6 +40,26 @@
       "availableEndTime": "16:30",
       "isTimeConfirmed": false,
       "belongings": "・コスプレ衣装\n・ウィッグ2個\n・メイク用品\n・小道具セット\n・充電器"
+    },
+    {
+      "id": "demo-performer-4",
+      "name": "高橋りな",
+      "startTime": "09:00",
+      "endTime": "14:00",
+      "availableStartTime": "08:30",
+      "availableEndTime": "14:30",
+      "isTimeConfirmed": true,
+      "belongings": "・メイク道具\n・ワンピース2着\n・ヒール靴\n・アクセサリーセット\n・ポーチ"
+    },
+    {
+      "id": "demo-performer-5",
+      "name": "山田ゆい",
+      "startTime": "12:00",
+      "endTime": "17:00",
+      "availableStartTime": "11:30",
+      "availableEndTime": "17:30",
+      "isTimeConfirmed": false,
+      "belongings": "・メイク用品一式\n・カジュアル服\n・スニーカー\n・帽子\n・水筒\n・スマホ充電器"
     }
   ],
   "plans": [
@@ -51,19 +71,19 @@
       "isConfirmed": true,
       "hasScript": true,
       "scriptUrl": "#",
-      "notes": "明るい雰囲気で自然な笑顔を心がけてください。3名での掛け合いシーンがメインです。",
+      "notes": "明るい雰囲気で自然な笑顔を心がけてください。司会者がリードし、全員での掛け合いシーンがメインです。",
       "performers": [
         {
           "performerId": "demo-performer-1",
-          "role": "メイン"
+          "role": "MC"
         },
         {
           "performerId": "demo-performer-2", 
-          "role": "サブ"
+          "role": "Main"
         },
         {
-          "performerId": "demo-performer-3",
-          "role": "サポート"
+          "performerId": "demo-performer-4",
+          "role": "Guest"
         }
       ]
     },
@@ -79,7 +99,7 @@
       "performers": [
         {
           "performerId": "demo-performer-1",
-          "role": "インタビュイー"
+          "role": "Main"
         }
       ]
     },
@@ -91,15 +111,23 @@
       "isConfirmed": true,
       "hasScript": false,
       "scriptUrl": "台本なし",
-      "notes": "2名でのコラボ企画です。自由な発想での対話を重視します。",
+      "notes": "4名でのコラボ企画です。自由な発想での対話を重視します。",
       "performers": [
         {
           "performerId": "demo-performer-1",
-          "role": "パートナー1"
+          "role": "MC"
         },
         {
           "performerId": "demo-performer-2",
-          "role": "パートナー2"
+          "role": "Main"
+        },
+        {
+          "performerId": "demo-performer-3",
+          "role": "Guest"
+        },
+        {
+          "performerId": "demo-performer-5",
+          "role": "Guest"
         }
       ]
     },
@@ -115,7 +143,11 @@
       "performers": [
         {
           "performerId": "demo-performer-3",
-          "role": "メイン"
+          "role": "Main"
+        },
+        {
+          "performerId": "demo-performer-5",
+          "role": "Guest"
         }
       ]
     },
@@ -131,15 +163,39 @@
       "performers": [
         {
           "performerId": "demo-performer-1",
-          "role": "メイン"
+          "role": "MC"
         },
         {
           "performerId": "demo-performer-2",
-          "role": "サブ"
+          "role": "Main"
         },
         {
           "performerId": "demo-performer-3", 
-          "role": "サブ"
+          "role": "Guest"
+        },
+        {
+          "performerId": "demo-performer-4",
+          "role": "Guest"
+        }
+      ]
+    },
+    {
+      "id": "demo-plan-6",
+      "title": "午後のトーク企画",
+      "scheduledTime": "14:15",
+      "duration": "30分",
+      "isConfirmed": true,
+      "hasScript": false,
+      "scriptUrl": "台本なし",
+      "notes": "午後からの出演者を含めた新しいトーク企画です。",
+      "performers": [
+        {
+          "performerId": "demo-performer-5",
+          "role": "MC"
+        },
+        {
+          "performerId": "demo-performer-4",
+          "role": "Main"
         }
       ]
     }
