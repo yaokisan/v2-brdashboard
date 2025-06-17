@@ -189,7 +189,7 @@ export default function DemoAdminDashboard() {
                         <span>管理画面で編集</span>
                       </button>
                       <button
-                        onClick={() => router.push(`/project/${project.id}`)}
+                        onClick={() => window.open(`/project/${project.id}`, '_blank')}
                         className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-1"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

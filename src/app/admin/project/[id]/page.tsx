@@ -372,7 +372,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
               {/* 出演者ページ確認ボタン */}
               <div className="flex justify-center">
                 <button
-                  onClick={() => router.push(`/project/${project.id}`)}
+                  onClick={() => window.open(`/project/${project.id}`, '_blank')}
                   className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 flex items-center gap-3"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
