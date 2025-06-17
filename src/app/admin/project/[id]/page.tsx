@@ -297,10 +297,10 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="border-b border-gray-200 mb-6">
-            <nav className="-mb-px flex space-x-8">
+      <div className="max-w-7xl mx-auto py-4 sm:py-6 sm:px-6 lg:px-8">
+        <div className="px-3 sm:px-4 py-4 sm:py-6 sm:px-0">
+          <div className="border-b border-gray-200 mb-6 overflow-x-auto overflow-y-hidden">
+            <nav className="-mb-px flex space-x-2 sm:space-x-8 min-w-max">
               {[
                 { key: 'basic', label: '基本情報' },
                 { key: 'performers', label: '出演者管理' },
@@ -311,7 +311,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as any)}
-                  className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`whitespace-nowrap py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm flex-shrink-0 ${
                     activeTab === tab.key
                       ? 'border-pink-500 text-pink-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -324,7 +324,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           </div>
 
           {activeTab === 'basic' && (
-            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
+            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-4 sm:p-6 border border-white/20">
               <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">基本情報</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -427,12 +427,12 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           )}
 
           {activeTab === 'performers' && (
-            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
-              <div className="flex justify-between items-center mb-6">
+            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-4 sm:p-6 border border-white/20">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
                 <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">出演者管理</h3>
                 <button
                   onClick={addPerformer}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 shadow-md flex items-center gap-2"
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -521,12 +521,12 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           )}
 
           {activeTab === 'plans' && (
-            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
-              <div className="flex justify-between items-center mb-6">
+            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-4 sm:p-6 border border-white/20">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
                 <h3 className="text-lg font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">企画管理</h3>
                 <button
                   onClick={addPlan}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 shadow-md flex items-center gap-2"
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

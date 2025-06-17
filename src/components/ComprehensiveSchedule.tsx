@@ -302,13 +302,13 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
       </div>
 
       {/* 香盤表 */}
-      <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
-        <table className="w-full border-collapse">
+      <div className="bg-white border border-gray-300 rounded-lg overflow-x-auto">
+        <table className="min-w-full border-collapse">
           {/* ヘッダー */}
           <thead>
             <tr>
-              <th className="bg-gray-200 border border-gray-400 p-2 text-sm font-bold w-16">種別</th>
-              <th className="bg-orange-400 border border-gray-400 p-2 text-sm font-bold text-white w-24">全体</th>
+              <th className="bg-gray-200 border border-gray-400 p-2 text-sm font-bold min-w-[120px]">種別</th>
+              <th className="bg-orange-400 border border-gray-400 p-2 text-sm font-bold text-white min-w-[150px]">全体</th>
               <th className="bg-blue-200 border border-gray-400 p-2 text-sm font-bold" colSpan={project?.performers?.length || 0}>
                 ご出演者様
               </th>
@@ -317,7 +317,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
               <th className="bg-gray-200 border border-gray-400 p-2 text-sm font-bold">名前</th>
               <th className="bg-orange-400 border border-gray-400 p-2 text-sm font-bold text-white">-</th>
               {project?.performers?.map(performer => (
-                <th key={performer.id} className="bg-blue-200 border border-gray-400 p-2 text-sm font-bold min-w-20">
+                <th key={performer.id} className="bg-blue-200 border border-gray-400 p-2 text-sm font-bold min-w-[100px]">
                   {performer.name}様
                 </th>
               ))}
