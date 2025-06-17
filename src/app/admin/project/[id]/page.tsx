@@ -20,30 +20,67 @@ import TimeInput from '@/components/TimeInput';
 import ScheduleEditor from '@/components/ScheduleEditor';
 import ComprehensiveSchedule from '@/components/ComprehensiveSchedule';
 import { calculateEndTime, formatTimeShort } from '@/lib/utils';
+import demoData from '@/data/demo-data.json';
 
 export default function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'basic' | 'performers' | 'plans' | 'schedule-editor' | 'schedule'>('basic');
   
   const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const isAuthenticated = document.cookie.includes('auth=true');
-    if (!isAuthenticated) {
-      router.push('/');
-      return;
-    }
-
     const loadProject = async () => {
       const resolvedParams = await params;
-      const projectData = await getProject(resolvedParams.id);
-      if (!projectData) {
-        router.push('/admin');
-        return;
+      
+      // デモモードの判定
+      if (resolvedParams.id === demoData.project.id) {
+        // デモモードの場合は認証チェックをスキップ
+        setIsDemoMode(true);
+        
+        // セッションストレージからデモデータを取得
+        const sessionKey = 'beauty-road-demo-data';
+        const sessionData = sessionStorage.getItem(sessionKey);
+        
+        if (sessionData) {
+          const parsedData = JSON.parse(sessionData);
+          setProject(parsedData.project);
+        } else {
+          // セッションにない場合は初期データを使用
+          const initialProject = {
+            ...demoData.project,
+            performers: demoData.performers,
+            plans: demoData.plans.map(plan => ({
+              ...plan,
+              performers: plan.performers
+            }))
+          };
+          setProject(initialProject as Project);
+          
+          // セッションストレージに保存
+          sessionStorage.setItem(sessionKey, JSON.stringify({
+            project: initialProject,
+            scheduleItems: demoData.scheduleItems
+          }));
+        }
+      } else {
+        // 通常モード：認証チェック
+        const isAuthenticated = document.cookie.includes('auth=true');
+        if (!isAuthenticated) {
+          router.push('/');
+          return;
+        }
+        
+        // データベースから取得
+        const projectData = await getProject(resolvedParams.id);
+        if (!projectData) {
+          router.push('/admin');
+          return;
+        }
+        setProject(projectData);
       }
       
-      setProject(projectData);
       setLoading(false);
     };
 
@@ -54,23 +91,32 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
     if (!project) return;
     
     // ローカル状態を先に更新
-    setProject(prev => {
-      if (!prev) return prev;
-      return { ...prev, ...updates };
-    });
+    const updatedProject = { ...project, ...updates };
+    setProject(updatedProject);
     
-    // バックグラウンドでデータベースを更新
-    try {
-      await updateProject(project.id, updates);
-    } catch (error) {
-      console.error('Failed to update project:', error);
-      // エラー時は元のデータを再取得
-      const originalProject = await getProject(project.id);
-      if (originalProject) {
-        setProject(originalProject);
+    if (isDemoMode) {
+      // デモモード：セッションストレージを更新
+      const sessionKey = 'beauty-road-demo-data';
+      const sessionData = sessionStorage.getItem(sessionKey);
+      if (sessionData) {
+        const parsedData = JSON.parse(sessionData);
+        parsedData.project = updatedProject;
+        sessionStorage.setItem(sessionKey, JSON.stringify(parsedData));
+      }
+    } else {
+      // 通常モード：データベースを更新
+      try {
+        await updateProject(project.id, updates);
+      } catch (error) {
+        console.error('Failed to update project:', error);
+        // エラー時は元のデータを再取得
+        const originalProject = await getProject(project.id);
+        if (originalProject) {
+          setProject(originalProject);
+        }
       }
     }
-  }, [project]);
+  }, [project, isDemoMode]);
 
   // 香盤表エディターからのスケジュール更新を処理
   const handleScheduleUpdate = useCallback(async (planId: string, newStartTime: string) => {
@@ -277,13 +323,13 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           <div className="flex justify-between items-center h-16 sm:h-20">
             <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
               <button
-                onClick={() => router.push('/admin')}
+                onClick={() => router.push(isDemoMode ? '/' : '/admin')}
                 className="text-gray-600 hover:text-pink-600 transition-colors flex items-center gap-1 flex-shrink-0"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="hidden xs:inline">戻る</span>
+                <span className="hidden xs:inline">{isDemoMode ? 'ログインに戻る' : '戻る'}</span>
               </button>
               <div className="min-w-0 flex-1">
                 <h1 className="text-sm sm:text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent truncate">
@@ -292,6 +338,14 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </h1>
                 <p className="text-xs text-gray-500 sm:hidden">編集ページ</p>
               </div>
+              {isDemoMode && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-100 rounded-lg">
+                  <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  <span className="text-sm font-medium text-amber-700">デモモード</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -299,6 +353,37 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
 
       <div className="max-w-7xl mx-auto py-4 sm:py-6 sm:px-6 lg:px-8">
         <div className="px-3 sm:px-4 py-4 sm:py-6 sm:px-0">
+          {isDemoMode && (
+            <div className="mb-6 space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-amber-900 mb-1">デモモードで動作中</h3>
+                    <p className="text-sm text-amber-800">
+                      管理システムの全機能をお試しいただけます。変更内容はセッション中のみ保持され、ブラウザを閉じるとリセットされます。
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 出演者ページ確認ボタン */}
+              <div className="flex justify-center">
+                <button
+                  onClick={() => router.push(`/project/${project.id}`)}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 flex items-center gap-3"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span>出演者ページを確認</span>
+                </button>
+              </div>
+            </div>
+          )}
           <div className="border-b border-gray-200 mb-6 overflow-x-auto overflow-y-hidden">
             <nav className="-mb-px flex space-x-2 sm:space-x-8 min-w-max">
               {[

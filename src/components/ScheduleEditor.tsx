@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Project, Plan, Performer, TimelineItem, PerformerAvailability } from '@/types';
 import { formatTimeShort, parseDurationToMinutes, calculateEndTime } from '@/lib/utils';
+import demoData from '@/data/demo-data.json';
 
 interface ScheduleEditorProps {
   project: Project;
@@ -66,8 +67,24 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
   useEffect(() => {
     const loadScheduleItems = async () => {
       try {
-        const { getScheduleItems } = await import('@/lib/database');
-        const scheduleItems = await getScheduleItems(project.id);
+        let scheduleItems;
+        
+        // デモモードの判定
+        if (project.id === demoData.project.id) {
+          // デモモード：セッションストレージから取得
+          const sessionKey = 'beauty-road-demo-data';
+          const sessionData = sessionStorage.getItem(sessionKey);
+          if (sessionData) {
+            const parsedData = JSON.parse(sessionData);
+            scheduleItems = parsedData.scheduleItems || demoData.scheduleItems;
+          } else {
+            scheduleItems = demoData.scheduleItems;
+          }
+        } else {
+          // 通常モード：データベースから取得
+          const { getScheduleItems } = await import('@/lib/database');
+          scheduleItems = await getScheduleItems(project.id);
+        }
         
         const scheduleTimelineItems = scheduleItems.map((item: any) => ({
           id: item.id,
@@ -86,7 +103,7 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
           const existingScheduleItems = prev.filter(item => item.type !== 'plan');
           
           // 既存のスケジュールアイテムがある場合は、ローカルの変更を保持
-          const finalScheduleItems = scheduleTimelineItems.map(dbItem => {
+          const finalScheduleItems = scheduleTimelineItems.map((dbItem: any) => {
             const existingItem = existingScheduleItems.find(localItem => localItem.dbId === dbItem.id);
             if (existingItem) {
               return {

@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Project, Plan, Performer } from '@/types';
 import { formatTimeShort, parseDurationToMinutes } from '@/lib/utils';
+import demoData from '@/data/demo-data.json';
 
 interface ComprehensiveScheduleProps {
   project: Project;
@@ -46,8 +47,25 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
   React.useEffect(() => {
     const loadScheduleItems = async () => {
       try {
-        const { getScheduleItems } = await import('@/lib/database');
-        const items = await getScheduleItems(project.id);
+        let items;
+        
+        // デモモードの判定
+        if (project?.id === demoData.project.id) {
+          // デモモード：セッションストレージから取得
+          const sessionKey = 'beauty-road-demo-data';
+          const sessionData = sessionStorage.getItem(sessionKey);
+          if (sessionData) {
+            const parsedData = JSON.parse(sessionData);
+            items = parsedData.scheduleItems || demoData.scheduleItems;
+          } else {
+            items = demoData.scheduleItems;
+          }
+        } else {
+          // 通常モード：データベースから取得
+          const { getScheduleItems } = await import('@/lib/database');
+          items = await getScheduleItems(project.id);
+        }
+        
         setScheduleItems(items || []);
       } catch (error) {
         console.error('Failed to load schedule items:', error);

@@ -14,7 +14,8 @@
       "Bash(find:*)",
       "Bash(vercel:*)",
       "Bash(npx vercel build:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   },

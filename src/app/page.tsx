@@ -102,11 +102,11 @@ export default function LoginPage() {
           
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <p className="text-sm text-gray-600">
-                デモは
+                システムのデモは
                 <a 
-                  href="/demo" 
+                  href="/admin/demo" 
                   className="ml-1 text-pink-600 hover:text-pink-700 font-medium transition-colors duration-200 hover:underline"
                 >
                   こちらから
