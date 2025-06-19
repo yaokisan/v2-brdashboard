@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { Project, Performer, Plan, PlanPerformer } from '@/types'
+import { Project, Performer, Plan, PlanPerformer, Proposal } from '@/types'
 
 // プロジェクト関連
 export async function getProjects(): Promise<Project[]> {
@@ -451,4 +451,252 @@ export async function deleteScheduleItem(itemId: string): Promise<boolean> {
   }
 
   return true
+}
+
+// 企画書関連
+export async function getProposals(): Promise<Proposal[]> {
+  const { data, error } = await supabase
+    .from('proposals')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching proposals:', error)
+    return []
+  }
+
+  return data?.map(transformProposalFromDB) || []
+}
+
+export async function getProposal(id: string): Promise<Proposal | null> {
+  const { data, error } = await supabase
+    .from('proposals')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching proposal:', error)
+    return null
+  }
+
+  return transformProposalFromDB(data)
+}
+
+export async function getProposalBySlug(slug: string): Promise<Proposal | null> {
+  // スラッグの正規化（先頭のスラッシュを考慮）
+  const normalizedSlug = slug.startsWith('/') ? slug : `/${slug}`;
+  const alternativeSlug = slug.startsWith('/') ? slug.substring(1) : slug;
+
+  // まず元のスラッグで検索
+  let { data, error } = await supabase
+    .from('proposals')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .single()
+
+  // 見つからない場合は正規化されたスラッグで検索
+  if (error && error.code === 'PGRST116') {
+    const { data: data2, error: error2 } = await supabase
+      .from('proposals')
+      .select('*')
+      .eq('slug', normalizedSlug)
+      .eq('is_published', true)
+      .single()
+    
+    if (!error2) {
+      data = data2;
+      error = error2;
+    }
+  }
+
+  // まだ見つからない場合は代替スラッグで検索
+  if (error && error.code === 'PGRST116') {
+    const { data: data3, error: error3 } = await supabase
+      .from('proposals')
+      .select('*')
+      .eq('slug', alternativeSlug)
+      .eq('is_published', true)
+      .single()
+    
+    if (!error3) {
+      data = data3;
+      error = error3;
+    }
+  }
+
+  if (error) {
+    console.error('Error fetching proposal by slug:', error)
+    return null
+  }
+
+  if (!data) {
+    return null
+  }
+
+  // 有効期限チェック
+  if (data.expires_at) {
+    const expiresAt = new Date(data.expires_at)
+    const now = new Date()
+    if (expiresAt < now) {
+      return null
+    }
+  }
+
+  return transformProposalFromDB(data)
+}
+
+export async function createProposal(proposalData: Omit<Proposal, 'id' | 'createdAt' | 'updatedAt'>): Promise<Proposal | null> {
+  // YouTubeのURLから埋め込みIDを抽出
+  const embedId = extractYouTubeId(proposalData.youtubeUrl || '')
+  
+  // スラッグの正規化（先頭のスラッシュを削除）
+  const normalizedSlug = proposalData.slug.startsWith('/') ? proposalData.slug.substring(1) : proposalData.slug;
+
+
+  const { data, error } = await supabase
+    .from('proposals')
+    .insert({
+      title: proposalData.title,
+      title_note: proposalData.titleNote,
+      recording_date_text: proposalData.recordingDateText,
+      recording_time_text: proposalData.recordingTimeText,
+      location_text: proposalData.locationText,
+      overview: proposalData.overview,
+      youtube_url: proposalData.youtubeUrl,
+      youtube_embed_id: embedId,
+      video_description: proposalData.videoDescription,
+      appearance_fee_type: proposalData.appearanceFeeType,
+      appearance_fee_text: proposalData.appearanceFeeText,
+      transportation_type: proposalData.transportationType,
+      transportation_text: proposalData.transportationText,
+      expense_note: proposalData.expenseNote,
+      slug: normalizedSlug,
+      is_published: proposalData.isPublished,
+      expires_at: proposalData.expiresAt
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating proposal:', error)
+    return null
+  }
+
+  return transformProposalFromDB(data)
+}
+
+export async function updateProposal(id: string, updates: Partial<Proposal>): Promise<Proposal | null> {
+  const updateData: any = {}
+
+  if (updates.title !== undefined) updateData.title = updates.title
+  if (updates.titleNote !== undefined) updateData.title_note = updates.titleNote
+  if (updates.recordingDateText !== undefined) updateData.recording_date_text = updates.recordingDateText
+  if (updates.recordingTimeText !== undefined) updateData.recording_time_text = updates.recordingTimeText
+  if (updates.locationText !== undefined) updateData.location_text = updates.locationText
+  if (updates.overview !== undefined) updateData.overview = updates.overview
+  if (updates.youtubeUrl !== undefined) {
+    updateData.youtube_url = updates.youtubeUrl
+    updateData.youtube_embed_id = extractYouTubeId(updates.youtubeUrl)
+  }
+  if (updates.videoDescription !== undefined) updateData.video_description = updates.videoDescription
+  if (updates.appearanceFeeType !== undefined) updateData.appearance_fee_type = updates.appearanceFeeType
+  if (updates.appearanceFeeText !== undefined) updateData.appearance_fee_text = updates.appearanceFeeText
+  if (updates.transportationType !== undefined) updateData.transportation_type = updates.transportationType
+  if (updates.transportationText !== undefined) updateData.transportation_text = updates.transportationText
+  if (updates.expenseNote !== undefined) updateData.expense_note = updates.expenseNote
+  if (updates.slug !== undefined) {
+    const normalizedSlug = updates.slug.startsWith('/') ? updates.slug.substring(1) : updates.slug;
+    updateData.slug = normalizedSlug;
+  }
+  if (updates.isPublished !== undefined) updateData.is_published = updates.isPublished
+  if (updates.expiresAt !== undefined) updateData.expires_at = updates.expiresAt
+
+  const { error } = await supabase
+    .from('proposals')
+    .update(updateData)
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error updating proposal:', error)
+    return null
+  }
+
+  return getProposal(id)
+}
+
+export async function deleteProposal(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('proposals')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting proposal:', error)
+    return false
+  }
+
+  return true
+}
+
+export async function duplicateProposal(id: string): Promise<Proposal | null> {
+  const original = await getProposal(id)
+  if (!original) return null
+
+  // 新しいスラッグを生成
+  const timestamp = Date.now()
+  const newSlug = `${original.slug}-copy-${timestamp}`
+
+  const newProposal: Omit<Proposal, 'id' | 'createdAt' | 'updatedAt'> = {
+    ...original,
+    title: `${original.title}（コピー）`,
+    slug: newSlug,
+    isPublished: false // 複製は非公開状態で作成
+  }
+
+  return createProposal(newProposal)
+}
+
+// YouTubeのURLから埋め込みIDを抽出
+function extractYouTubeId(url: string): string | null {
+  if (!url) return null
+
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /^([a-zA-Z0-9_-]{11})$/
+  ]
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern)
+    if (match) return match[1]
+  }
+
+  return null
+}
+
+// DB形式からアプリ形式への変換
+function transformProposalFromDB(dbProposal: any): Proposal {
+  return {
+    id: dbProposal.id,
+    title: dbProposal.title,
+    titleNote: dbProposal.title_note,
+    recordingDateText: dbProposal.recording_date_text,
+    recordingTimeText: dbProposal.recording_time_text,
+    locationText: dbProposal.location_text,
+    overview: dbProposal.overview,
+    youtubeUrl: dbProposal.youtube_url,
+    youtubeEmbedId: dbProposal.youtube_embed_id,
+    videoDescription: dbProposal.video_description,
+    appearanceFeeType: dbProposal.appearance_fee_type,
+    appearanceFeeText: dbProposal.appearance_fee_text,
+    transportationType: dbProposal.transportation_type,
+    transportationText: dbProposal.transportation_text,
+    expenseNote: dbProposal.expense_note,
+    slug: dbProposal.slug,
+    isPublished: dbProposal.is_published,
+    expiresAt: dbProposal.expires_at,
+    createdAt: dbProposal.created_at,
+    updatedAt: dbProposal.updated_at
+  }
 }

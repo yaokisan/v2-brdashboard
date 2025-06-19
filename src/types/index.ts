@@ -86,3 +86,27 @@ export interface ScheduleEditorState {
   totalEndTime: string;
   performerAvailabilities: PerformerAvailability[];
 }
+
+// 企画書関連の型定義
+export interface Proposal {
+  id: string;
+  title: string;
+  titleNote?: string;
+  recordingDateText: string;
+  recordingTimeText: string;
+  locationText: string;
+  overview?: string;
+  youtubeUrl?: string;
+  youtubeEmbedId?: string;
+  videoDescription?: string;
+  appearanceFeeType: 'promotional' | 'paid' | 'custom';
+  appearanceFeeText?: string;
+  transportationType: 'self_expense' | 'provided' | 'custom';
+  transportationText?: string;
+  expenseNote?: string;
+  slug: string;
+  isPublished: boolean;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
