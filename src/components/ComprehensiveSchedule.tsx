@@ -213,9 +213,9 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
           }
         });
 
-        // 入り時間をマーク
+        // 入り時間をマーク（10分前のブロックに表示）
         timeSlots.forEach(slot => {
-          if (slot.minutes >= startMinutes && slot.minutes < startMinutes + 10) {
+          if (slot.minutes >= startMinutes - 10 && slot.minutes < startMinutes) {
             activities[performer.id][slot.minutes] = {
               performerId: performer.id,
               activity: 'arrival'

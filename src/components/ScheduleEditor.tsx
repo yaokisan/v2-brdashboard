@@ -22,6 +22,60 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
   const [isDragSelecting, setIsDragSelecting] = useState(false);
   const [dragSelectStart, setDragSelectStart] = useState<{ x: number; y: number } | null>(null);
   const [dragSelectRect, setDragSelectRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  
+  // Undo機能の履歴管理（個別アイテムベース）
+  interface UndoAction {
+    type: 'move' | 'resize';
+    itemId: string;
+    oldValue: { startTime: string; duration: number };
+    newValue: { startTime: string; duration: number };
+  }
+  const [undoStack, setUndoStack] = useState<UndoAction[]>([]);
+
+  // 履歴に追加する関数（個別アイテム）
+  const addToUndoStack = useCallback((action: UndoAction) => {
+    setUndoStack(prev => {
+      const newStack = [...prev, action];
+      // 最大50件まで保持
+      if (newStack.length > 50) {
+        newStack.shift();
+      }
+      return newStack;
+    });
+  }, []);
+
+  // Undoを実行する関数
+  const undo = useCallback(() => {
+    if (undoStack.length === 0) return;
+    
+    const lastAction = undoStack[undoStack.length - 1];
+    
+    // アイテムを元の状態に戻す
+    setTimelineItems(prev => prev.map(item => {
+      if (item.id === lastAction.itemId) {
+        return {
+          ...item,
+          startTime: lastAction.oldValue.startTime,
+          duration: lastAction.oldValue.duration
+        };
+      }
+      return item;
+    }));
+    
+    // スタックから削除
+    setUndoStack(prev => prev.slice(0, -1));
+    
+    // データベースも更新（企画の場合）
+    setTimeout(() => {
+      setTimelineItems(current => {
+        const item = current.find(i => i.id === lastAction.itemId);
+        if (item && item.planId) {
+          onScheduleUpdate(item.planId, lastAction.oldValue.startTime);
+        }
+        return current;
+      });
+    }, 0);
+  }, [undoStack, onScheduleUpdate]);
   // 時間をHH:MM形式から分に変換
   const timeToMinutes = (timeStr: string): number => {
     const [hours, minutes] = timeStr.split(':').map(Number);
@@ -92,6 +146,22 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
       color: plan.isConfirmed ? '#10b981' : '#f59e0b'
     }));
   });
+
+  // キーボードイベントリスナー（Ctrl/Cmd+Zでundo）
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [undo]);
+
 
   // スケジュールアイテム（休憩・準備時間）をロード
   useEffect(() => {
@@ -183,15 +253,19 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     const left = ((startMinutes - timelineStart) / timelineDuration) * 100;
     const width = (item.duration / timelineDuration) * 100;
     
-    // 時間に正確に対応する横幅を計算（最小幅は維持しつつ、時間比率を正確に反映）
+    // 時間に正確に対応する横幅を計算（境界線を考慮して完全にフィット）
     const clampedLeft = Math.max(0, Math.min(100, left));
     const clampedWidth = Math.max(0, Math.min(100 - clampedLeft, width));
     
+    // 非常に短いブロック（10分未満）には最小限の視認性を確保
+    const isVeryShort = item.duration < 10;
+    const finalWidth = isVeryShort ? Math.max(clampedWidth, 1.5) : clampedWidth; // 最小1.5%の幅を確保
+    
     return {
       left: `${clampedLeft}%`,
-      width: `${clampedWidth}%`,
+      width: `${finalWidth}%`,
       backgroundColor: item.color,
-      minWidth: '40px', // 最小幅を小さくして正確性を優先
+      boxSizing: 'border-box' as const,
     };
   };
 
@@ -216,6 +290,9 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartTime, setResizeStartTime] = useState<string>('');
   const [resizeStartDuration, setResizeStartDuration] = useState(0);
+  
+  // Undo用の操作開始時の状態保存
+  const [dragStartState, setDragStartState] = useState<{itemId: string; startTime: string; duration: number} | null>(null);
   
   // カスタムアイテム追加のモーダル状態
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -244,17 +321,17 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
       setLastSelectedItem(itemId);
     } else if (e.shiftKey && lastSelectedItem) {
       // Shift + クリック：範囲選択
-      const items = timelineItems.filter(item => item.type === 'plan').sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
-      const lastIndex = items.findIndex(item => item.id === lastSelectedItem);
-      const currentIndex = items.findIndex(item => item.id === itemId);
+      const sortedItems = [...timelineItems].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+      const lastIndex = sortedItems.findIndex(item => item.id === lastSelectedItem);
+      const currentIndex = sortedItems.findIndex(item => item.id === itemId);
       
       if (lastIndex !== -1 && currentIndex !== -1) {
         const startIndex = Math.min(lastIndex, currentIndex);
         const endIndex = Math.max(lastIndex, currentIndex);
-        const rangeItems = items.slice(startIndex, endIndex + 1);
+        const rangeItems = sortedItems.slice(startIndex, endIndex + 1);
         
-        setSelectedItems(prev => {
-          const newSelected = new Set(prev);
+        setSelectedItems(() => {
+          const newSelected = new Set<string>();
           rangeItems.forEach(item => newSelected.add(item.id));
           return newSelected;
         });
@@ -274,13 +351,23 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
       setLastSelectedItem(itemId);
     }
     
+    // Undo用にドラッグ開始時の状態を保存
+    const item = timelineItems.find(i => i.id === itemId);
+    if (item) {
+      setDragStartState({
+        itemId: item.id,
+        startTime: item.startTime,
+        duration: item.duration
+      });
+    }
+    
     setDraggedItem(itemId);
     const rect = e.currentTarget.getBoundingClientRect();
     const timelineRect = e.currentTarget.parentElement?.getBoundingClientRect();
     if (timelineRect) {
       setDragOffset(e.clientX - rect.left);
     }
-  }, [selectedItems]);
+  }, [selectedItems, timelineItems]);
 
   // 10分刻みにスナップする関数
   const snapToTenMinutes = (minutes: number): number => {
@@ -321,19 +408,37 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
   // ドロップ処理（複数選択対応）
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    if (!draggedItem) return;
+    if (!draggedItem || !dragStartState) return;
     
-    // 選択された全てのアイテムの新しい位置を更新
-    selectedItems.forEach(itemId => {
-      const item = timelineItems.find(i => i.id === itemId);
-      if (item && item.planId) {
-        onScheduleUpdate(item.planId, item.startTime);
-      }
-    });
+    // ドラッグされたアイテムの現在の状態を取得
+    const currentItem = timelineItems.find(i => i.id === draggedItem);
+    if (!currentItem) return;
+    
+    // 位置が変わった場合のみUndo履歴に追加
+    if (dragStartState.startTime !== currentItem.startTime || dragStartState.duration !== currentItem.duration) {
+      addToUndoStack({
+        type: 'move',
+        itemId: draggedItem,
+        oldValue: {
+          startTime: dragStartState.startTime,
+          duration: dragStartState.duration
+        },
+        newValue: {
+          startTime: currentItem.startTime,
+          duration: currentItem.duration
+        }
+      });
+    }
+    
+    // データベースを更新（企画の場合）
+    if (currentItem.planId) {
+      onScheduleUpdate(currentItem.planId, currentItem.startTime);
+    }
     
     setDraggedItem(null);
     setDragOffset(0);
-  }, [draggedItem, timelineItems, onScheduleUpdate, selectedItems]);
+    setDragStartState(null);
+  }, [draggedItem, dragStartState, timelineItems, onScheduleUpdate, addToUndoStack]);
 
   // 矩形選択のハンドラー
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -442,12 +547,25 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     }
   }, [isDragSelecting, dragSelectStart]);
 
+  // 最も右端の時間を計算する関数
+  const findRightmostTime = useCallback(() => {
+    let rightmostTime = timelineStart;
+    
+    timelineItems.forEach(item => {
+      const itemStartMinutes = timeToMinutes(item.startTime);
+      const itemEndMinutes = itemStartMinutes + item.duration;
+      rightmostTime = Math.max(rightmostTime, itemEndMinutes);
+    });
+    
+    // 10分刻みにスナップ
+    return snapToTenMinutes(rightmostTime);
+  }, [timelineItems, timelineStart]);
+
   // 休憩・準備時間を追加
   const addBreakOrPreparation = useCallback(async (type: 'break' | 'preparation', defaultStartTime: string) => {
-    // 現在の時間を10分刻みにスナップ
-    const currentMinutes = timeToMinutes(defaultStartTime);
-    const snappedMinutes = snapToTenMinutes(currentMinutes);
-    const snappedStartTime = minutesToTime(snappedMinutes);
+    // エディターの右端に配置
+    const rightmostMinutes = findRightmostTime();
+    const snappedStartTime = minutesToTime(rightmostMinutes);
     
     const title = type === 'break' ? '休憩時間' : '準備時間';
     
@@ -496,16 +614,15 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     } catch (error) {
       console.error('Failed to add schedule item:', error);
     }
-  }, [project.id]);
+  }, [project.id, findRightmostTime]);
 
   // カスタムアイテムを追加
   const addCustomItem = useCallback(async () => {
     if (!customTitle.trim()) return;
     
-    // 現在の時間を10分刻みにスナップ
-    const currentMinutes = timeToMinutes('12:00'); // デフォルト時間
-    const snappedMinutes = snapToTenMinutes(currentMinutes);
-    const snappedStartTime = minutesToTime(snappedMinutes);
+    // エディターの右端に配置
+    const rightmostMinutes = findRightmostTime();
+    const snappedStartTime = minutesToTime(rightmostMinutes);
     
     try {
       const { createScheduleItem } = await import('@/lib/database');
@@ -557,7 +674,7 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     } catch (error) {
       console.error('Failed to add custom item:', error);
     }
-  }, [project.id, customTitle, customDuration]);
+  }, [project.id, customTitle, customDuration, findRightmostTime]);
 
   // アイテムを削除（企画以外のみ）
   const removeItem = useCallback(async (e: React.MouseEvent, itemId: string) => {
@@ -782,8 +899,21 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     }
   }, [timelineItems, onScheduleUpdate, onDurationUpdate]);
 
+  // エディター外クリックで選択解除
+  const handleContainerClick = useCallback((e: React.MouseEvent) => {
+    // data-timelineまたはdata-itemをクリックした場合は何もしない
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-timeline]') || target.closest('[data-item]')) {
+      return;
+    }
+    
+    // それ以外の場所をクリックした場合は選択解除
+    setSelectedItems(new Set());
+    setLastSelectedItem(null);
+  }, []);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onClick={handleContainerClick}>
       {/* ヘッダー */}
       <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 border border-white/20">
         <div className="flex items-center justify-between mb-4">
@@ -934,14 +1064,16 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
                 <div
                   key={item.id}
                   data-item={item.id}
-                  className={`absolute h-16 top-2 rounded-lg border-2 shadow-lg hover:shadow-xl transition-all ${
+                  className={`absolute h-16 top-2 rounded-lg border shadow-lg hover:shadow-xl transition-all ${
                     draggedItem === item.id ? 'opacity-50' : ''
                   } ${resizingItem === item.id ? 'ring-2 ring-blue-400' : ''} ${
-                    selectedItems.has(item.id) ? 'border-blue-500 ring-2 ring-blue-300' : 'border-white'
+                    selectedItems.has(item.id) ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300'
                   }`}
                   style={{
                     ...getItemStyle(item),
-                    zIndex: selectedItems.has(item.id) ? 20 + index : 10 + index,
+                    // 新しく追加されたアイテム（休憩・準備・カスタム）を最上位に表示
+                    zIndex: selectedItems.has(item.id) ? 30 + index : 
+                            (item.type !== 'plan' ? 20 + index : 10 + index),
                   }}
                   draggable={item.isMovable && editingItem !== item.id && !resizingItem}
                   onDragStart={(e) => editingItem === item.id || resizingItem ? e.preventDefault() : handleDragStart(e, item.id)}
