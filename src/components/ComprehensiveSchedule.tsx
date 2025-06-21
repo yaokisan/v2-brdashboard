@@ -93,7 +93,46 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
     const endMinutes = timeToMinutes(recordingTimeRange.end);
     const slots: TimeSlot[] = [];
 
-    for (let minutes = startMinutes; minutes < endMinutes; minutes += 10) {
+    // 最後の活動が終了する時間を計算
+    let lastActivityEndMinutes = startMinutes;
+    
+    // 企画の最後の終了時間を計算
+    if (project?.plans) {
+      project.plans.forEach(plan => {
+        if (plan?.scheduledTime && plan?.duration) {
+          const planStart = timeToMinutes(plan.scheduledTime);
+          const planEnd = planStart + parseDurationToMinutes(plan.duration);
+          lastActivityEndMinutes = Math.max(lastActivityEndMinutes, planEnd);
+        }
+      });
+    }
+    
+    // スケジュールアイテム（休憩・準備時間）の最後の終了時間を計算
+    if (scheduleItems) {
+      scheduleItems.forEach(item => {
+        if (item?.start_time) {
+          const itemStart = timeToMinutes(item.start_time);
+          const itemEnd = itemStart + (item.duration || 30);
+          lastActivityEndMinutes = Math.max(lastActivityEndMinutes, itemEnd);
+        }
+      });
+    }
+    
+    // 出演者の最後の終了時間も確認（出発時間考慮で+10分）
+    if (project?.performers) {
+      project.performers.forEach(performer => {
+        if (performer.endTime) {
+          const performerEnd = timeToMinutes(performer.endTime);
+          // 出発時間表示のため、終了時間の次のスロットまで含める
+          lastActivityEndMinutes = Math.max(lastActivityEndMinutes, performerEnd + 10);
+        }
+      });
+    }
+    
+    // 実際の終了時間と設定された終了時間の小さい方を使用
+    const actualEndMinutes = Math.min(endMinutes, lastActivityEndMinutes);
+
+    for (let minutes = startMinutes; minutes < actualEndMinutes; minutes += 10) {
       slots.push({
         startTime: minutesToTime(minutes),
         endTime: minutesToTime(minutes + 10),
@@ -102,7 +141,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
     }
 
     return slots;
-  }, [recordingTimeRange]);
+  }, [recordingTimeRange, project?.plans, project?.performers, scheduleItems]);
 
   // 全アイテム（企画+休憩・準備時間）を統合してソート
   const allItems = useMemo(() => {
@@ -184,9 +223,9 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
           }
         });
 
-        // 終わり時間をマーク
+        // 終わり時間をマーク（次のタイムブロックに表示）
         timeSlots.forEach(slot => {
-          if (slot.minutes >= endMinutes - 10 && slot.minutes < endMinutes) {
+          if (slot.minutes >= endMinutes && slot.minutes < endMinutes + 10) {
             activities[performer.id][slot.minutes] = {
               performerId: performer.id,
               activity: 'departure'
@@ -222,13 +261,17 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
         item.plan.performers.forEach((performer: any) => {
           timeSlots.forEach(slot => {
             if (slot.minutes >= itemStartMinutes && slot.minutes < itemEndMinutes) {
-              activities[performer.performerId][slot.minutes] = {
-                performerId: performer.performerId,
-                activity: 'plan',
-                planId: item.id,
-                planTitle: item.title,
-                color: itemColor
-              };
+              // 到着・出発時間は保持する（企画で上書きしない）
+              const currentActivity = activities[performer.performerId][slot.minutes];
+              if (currentActivity?.activity !== 'arrival' && currentActivity?.activity !== 'departure') {
+                activities[performer.performerId][slot.minutes] = {
+                  performerId: performer.performerId,
+                  activity: 'plan',
+                  planId: item.id,
+                  planTitle: item.title,
+                  color: itemColor
+                };
+              }
             }
           });
         });
@@ -244,12 +287,16 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
               // 出演者の参加時間内で、かつアイテムの時間内の場合
               if (slot.minutes >= Math.max(itemStartMinutes, performerStart) && 
                   slot.minutes < Math.min(itemEndMinutes, performerEnd)) {
-                activities[performer.id][slot.minutes] = {
-                  performerId: performer.id,
-                  activity: item.type as 'break' | 'preparation' | 'custom',
-                  planTitle: item.title,
-                  color: item.type === 'break' ? '#fca5a5' : item.type === 'preparation' ? '#6b7280' : '#ea580c'
-                };
+                // 到着・出発時間は保持する（休憩・準備時間で上書きしない）
+                const currentActivity = activities[performer.id][slot.minutes];
+                if (currentActivity?.activity !== 'arrival' && currentActivity?.activity !== 'departure') {
+                  activities[performer.id][slot.minutes] = {
+                    performerId: performer.id,
+                    activity: item.type as 'break' | 'preparation' | 'custom',
+                    planTitle: item.title,
+                    color: item.type === 'break' ? '#fca5a5' : item.type === 'preparation' ? '#6b7280' : '#ea580c'
+                  };
+                }
               }
             });
           }
@@ -443,12 +490,14 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                         textColor = 'text-white';
                         break;
                       case 'arrival':
-                        cellContent = '';
+                        cellContent = performer.startTime ? `${formatTimeShort(performer.startTime)} 入り` : '';
                         bgColor = 'bg-white';
+                        textColor = 'text-red-600 font-bold';
                         break;
                       case 'departure':
-                        cellContent = '';
+                        cellContent = performer.endTime ? `${formatTimeShort(performer.endTime)} 終わり` : '';
                         bgColor = 'bg-white';
+                        textColor = 'text-red-600 font-bold';
                         break;
                       case 'wait':
                         cellContent = '待機';
@@ -464,7 +513,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                     return (
                       <td 
                         key={performer.id}
-                        className={`border border-gray-400 p-1 text-xs text-center ${bgColor} ${textColor}`}
+                        className={`border border-gray-400 p-1 text-xs text-center ${bgColor} ${textColor} ${activity?.activity === 'departure' ? 'border-b-0' : ''}`}
                         style={(activity?.activity === 'plan' || activity?.activity === 'break' || activity?.activity === 'preparation' || activity?.activity === 'custom') ? { backgroundColor: activity.color } : {}}
                         rowSpan={rowSpan > 1 ? rowSpan : undefined}
                       >

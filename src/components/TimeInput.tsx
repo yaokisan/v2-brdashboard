@@ -22,9 +22,12 @@ export default function TimeInput({ value, onChange, className = '', required = 
     onChange(e.target.value);
   };
 
+  // 値を正規化（HH:MM:SS形式の場合はHH:MMに変換）
+  const normalizedValue = value ? value.split(':').slice(0, 2).join(':') : '';
+
   return (
     <select
-      value={value}
+      value={normalizedValue}
       onChange={handleChange}
       className={className}
       required={required}

@@ -15,6 +15,13 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
   // 編集モードの状態管理
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editingDuration, setEditingDuration] = useState<number>(0);
+  
+  // 複数選択の状態管理
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [lastSelectedItem, setLastSelectedItem] = useState<string | null>(null);
+  const [isDragSelecting, setIsDragSelecting] = useState(false);
+  const [dragSelectStart, setDragSelectStart] = useState<{ x: number; y: number } | null>(null);
+  const [dragSelectRect, setDragSelectRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   // 時間をHH:MM形式から分に変換
   const timeToMinutes = (timeStr: string): number => {
     const [hours, minutes] = timeStr.split(':').map(Number);
@@ -47,6 +54,29 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
       isConfirmed: performer.isTimeConfirmed
     }));
   }, [project.performers, recordingTimeRange]);
+
+  // 時間外配置を検出する関数
+  const getTimeConflicts = useCallback((item: TimelineItem) => {
+    if (item.type !== 'plan' || !item.performers) return [];
+    
+    const itemStartMinutes = timeToMinutes(item.startTime);
+    const itemEndMinutes = itemStartMinutes + item.duration;
+    const conflicts: string[] = [];
+    
+    item.performers.forEach(performerId => {
+      const availability = performerAvailabilities.find(a => a.performerId === performerId);
+      if (!availability) return;
+      
+      const availableStartMinutes = timeToMinutes(availability.startTime);
+      const availableEndMinutes = timeToMinutes(availability.endTime);
+      
+      if (itemStartMinutes < availableStartMinutes || itemEndMinutes > availableEndMinutes) {
+        conflicts.push(availability.name);
+      }
+    });
+    
+    return conflicts;
+  }, [performerAvailabilities]);
 
   // 企画をタイムライン項目に変換
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>(() => {
@@ -196,22 +226,68 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  // 複数選択のクリックハンドラー
+  const handleItemClick = useCallback((e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation();
+    
+    if (e.ctrlKey || e.metaKey) {
+      // Ctrl/Cmd + クリック：個別選択/解除
+      setSelectedItems(prev => {
+        const newSelected = new Set(prev);
+        if (newSelected.has(itemId)) {
+          newSelected.delete(itemId);
+        } else {
+          newSelected.add(itemId);
+        }
+        return newSelected;
+      });
+      setLastSelectedItem(itemId);
+    } else if (e.shiftKey && lastSelectedItem) {
+      // Shift + クリック：範囲選択
+      const items = timelineItems.filter(item => item.type === 'plan').sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+      const lastIndex = items.findIndex(item => item.id === lastSelectedItem);
+      const currentIndex = items.findIndex(item => item.id === itemId);
+      
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const startIndex = Math.min(lastIndex, currentIndex);
+        const endIndex = Math.max(lastIndex, currentIndex);
+        const rangeItems = items.slice(startIndex, endIndex + 1);
+        
+        setSelectedItems(prev => {
+          const newSelected = new Set(prev);
+          rangeItems.forEach(item => newSelected.add(item.id));
+          return newSelected;
+        });
+      }
+    } else {
+      // 通常のクリック：単一選択
+      setSelectedItems(new Set([itemId]));
+      setLastSelectedItem(itemId);
+    }
+  }, [selectedItems, lastSelectedItem, timelineItems]);
+
   // ドラッグ開始
   const handleDragStart = useCallback((e: React.DragEvent, itemId: string) => {
+    // 選択されていないアイテムがドラッグされた場合、そのアイテムを選択
+    if (!selectedItems.has(itemId)) {
+      setSelectedItems(new Set([itemId]));
+      setLastSelectedItem(itemId);
+    }
+    
     setDraggedItem(itemId);
     const rect = e.currentTarget.getBoundingClientRect();
     const timelineRect = e.currentTarget.parentElement?.getBoundingClientRect();
     if (timelineRect) {
       setDragOffset(e.clientX - rect.left);
     }
-  }, []);
+  }, [selectedItems]);
 
   // 10分刻みにスナップする関数
   const snapToTenMinutes = (minutes: number): number => {
     return Math.round(minutes / 10) * 10;
   };
 
-  // ドラッグオーバー
+  // ドラッグオーバー（複数選択対応）
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     if (!draggedItem) return;
@@ -224,29 +300,147 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
     // 10分刻みにスナップ
     const snappedStartMinutes = snapToTenMinutes(rawStartMinutes);
     
+    // ドラッグされたアイテムの元の位置を取得
+    const draggedItemOriginal = timelineItems.find(item => item.id === draggedItem);
+    if (!draggedItemOriginal) return;
+    
+    const originalStartMinutes = timeToMinutes(draggedItemOriginal.startTime);
+    const offset = snappedStartMinutes - originalStartMinutes;
+    
     setTimelineItems(prev => prev.map(item => {
-      if (item.id === draggedItem) {
-        const clampedStartMinutes = Math.max(timelineStart, Math.min(timelineEnd - item.duration, snappedStartMinutes));
+      if (selectedItems.has(item.id)) {
+        const itemStartMinutes = timeToMinutes(item.startTime) + offset;
+        const clampedStartMinutes = Math.max(timelineStart, Math.min(timelineEnd - item.duration, itemStartMinutes));
         const newStartTime = minutesToTime(clampedStartMinutes);
         return { ...item, startTime: newStartTime };
       }
       return item;
     }));
-  }, [draggedItem, dragOffset, timelineStart, timelineEnd, timelineDuration]);
+  }, [draggedItem, dragOffset, timelineStart, timelineEnd, timelineDuration, selectedItems, timelineItems]);
 
-  // ドロップ処理
+  // ドロップ処理（複数選択対応）
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     if (!draggedItem) return;
     
-    const item = timelineItems.find(i => i.id === draggedItem);
-    if (item && item.planId) {
-      onScheduleUpdate(item.planId, item.startTime);
-    }
+    // 選択された全てのアイテムの新しい位置を更新
+    selectedItems.forEach(itemId => {
+      const item = timelineItems.find(i => i.id === itemId);
+      if (item && item.planId) {
+        onScheduleUpdate(item.planId, item.startTime);
+      }
+    });
     
     setDraggedItem(null);
     setDragOffset(0);
-  }, [draggedItem, timelineItems, onScheduleUpdate]);
+  }, [draggedItem, timelineItems, onScheduleUpdate, selectedItems]);
+
+  // 矩形選択のハンドラー
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // 企画ブロック上でのクリックは除外
+    if ((e.target as HTMLElement).closest('[data-item]')) return;
+    
+    // 右クリックやリサイズハンドラーは除外
+    if (e.button !== 0 || (e.target as HTMLElement).closest('[data-resize-handle]')) return;
+    
+    // 常に既存の選択をクリア（何もないところをクリックした場合）
+    setSelectedItems(new Set());
+    setLastSelectedItem(null);
+    
+    // Ctrl/Cmd/Shiftが押されていない場合のみドラッグ選択を開始
+    if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      setIsDragSelecting(true);
+      setDragSelectStart({ x: e.clientX, y: e.clientY });
+      setDragSelectRect(null);
+    }
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragSelecting || !dragSelectStart) return;
+    
+    const rect = {
+      x: Math.min(dragSelectStart.x, e.clientX),
+      y: Math.min(dragSelectStart.y, e.clientY),
+      width: Math.abs(e.clientX - dragSelectStart.x),
+      height: Math.abs(e.clientY - dragSelectStart.y)
+    };
+    
+    setDragSelectRect(rect);
+    
+    // 選択矩形内のアイテムを検出
+    const timelineElement = document.querySelector('[data-timeline]');
+    if (!timelineElement) return;
+    
+    const timelineRect = timelineElement.getBoundingClientRect();
+    const newSelection = new Set<string>();
+    
+    timelineItems.forEach(item => {
+      if (item.type !== 'plan') return;
+      
+      const itemElement = document.querySelector(`[data-item="${item.id}"]`);
+      if (!itemElement) return;
+      
+      const itemRect = itemElement.getBoundingClientRect();
+      
+      // 矩形の重なりを判定
+      const isIntersecting = !(
+        rect.x + rect.width < itemRect.left ||
+        rect.x > itemRect.right ||
+        rect.y + rect.height < itemRect.top ||
+        rect.y > itemRect.bottom
+      );
+      
+      if (isIntersecting) {
+        newSelection.add(item.id);
+      }
+    });
+    
+    setSelectedItems(newSelection);
+  }, [isDragSelecting, dragSelectStart, timelineItems]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragSelecting(false);
+    setDragSelectStart(null);
+    setDragSelectRect(null);
+    
+    // 最後に選択されたアイテムを設定
+    if (selectedItems.size > 0) {
+      const lastItem = Array.from(selectedItems).pop();
+      if (lastItem) setLastSelectedItem(lastItem);
+    }
+  }, [selectedItems]);
+
+  // グローバルイベントリスナー
+  useEffect(() => {
+    if (isDragSelecting) {
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        if (!dragSelectStart) return;
+        
+        const rect = {
+          x: Math.min(dragSelectStart.x, e.clientX),
+          y: Math.min(dragSelectStart.y, e.clientY),
+          width: Math.abs(e.clientX - dragSelectStart.x),
+          height: Math.abs(e.clientY - dragSelectStart.y)
+        };
+        
+        setDragSelectRect(rect);
+      };
+      
+      const handleGlobalMouseUp = () => {
+        setIsDragSelecting(false);
+        setDragSelectStart(null);
+        setDragSelectRect(null);
+      };
+      
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+      };
+    }
+  }, [isDragSelecting, dragSelectStart]);
 
   // 休憩・準備時間を追加
   const addBreakOrPreparation = useCallback(async (type: 'break' | 'preparation', defaultStartTime: string) => {
@@ -729,6 +923,9 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
               className="h-20 bg-gray-50 rounded-lg relative overflow-visible"
               onDragOver={handleDragOver}
               onDrop={handleDrop}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
               data-timeline
             >
               {timelineItems
@@ -736,15 +933,19 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
                 .map((item, index) => (
                 <div
                   key={item.id}
-                  className={`absolute h-16 top-2 rounded-lg border-2 border-white shadow-lg hover:shadow-xl transition-all ${
+                  data-item={item.id}
+                  className={`absolute h-16 top-2 rounded-lg border-2 shadow-lg hover:shadow-xl transition-all ${
                     draggedItem === item.id ? 'opacity-50' : ''
-                  } ${resizingItem === item.id ? 'ring-2 ring-blue-400' : ''}`}
+                  } ${resizingItem === item.id ? 'ring-2 ring-blue-400' : ''} ${
+                    selectedItems.has(item.id) ? 'border-blue-500 ring-2 ring-blue-300' : 'border-white'
+                  }`}
                   style={{
                     ...getItemStyle(item),
-                    zIndex: 10 + index,
+                    zIndex: selectedItems.has(item.id) ? 20 + index : 10 + index,
                   }}
                   draggable={item.isMovable && editingItem !== item.id && !resizingItem}
                   onDragStart={(e) => editingItem === item.id || resizingItem ? e.preventDefault() : handleDragStart(e, item.id)}
+                  onClick={(e) => handleItemClick(e, item.id)}
                 >
                   {/* 左リサイズハンドル */}
                   <div
@@ -813,6 +1014,27 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
                         </div>
                       )}
                       
+                      {/* 時間外配置警告 */}
+                      {(() => {
+                        const conflicts = getTimeConflicts(item);
+                        return conflicts.length > 0 && (
+                          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-50 group/warning">
+                            <div className="bg-yellow-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            {/* ツールチップ */}
+                            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-3 py-2 rounded text-xs opacity-0 group-hover/warning:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                              {conflicts.length === 1 
+                                ? `${conflicts[0]}さんの調整可能時間外です`
+                                : `${conflicts.join('、')}さんの調整可能時間外です`
+                              }
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      
                       {/* タイトル部分 */}
                       <div className="font-medium text-center flex-1 flex items-center justify-center text-xs leading-tight" title={item.title}>
                         {item.title.length > 18 ? `${item.title.substring(0, 18)}...` : item.title}
@@ -836,6 +1058,19 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
                   </div>
                 </div>
               ))}
+              
+              {/* 選択矩形の表示 */}
+              {isDragSelecting && dragSelectRect && (
+                <div
+                  className="absolute border-2 border-blue-500 bg-blue-500/20 pointer-events-none z-50"
+                  style={{
+                    left: dragSelectRect.x - (document.querySelector('[data-timeline]')?.getBoundingClientRect().left || 0),
+                    top: dragSelectRect.y - (document.querySelector('[data-timeline]')?.getBoundingClientRect().top || 0),
+                    width: dragSelectRect.width,
+                    height: dragSelectRect.height,
+                  }}
+                />
+              )}
             </div>
           </div>
           

@@ -817,10 +817,9 @@ function PlanCard({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
-            <input
-              type="time"
+            <TimeInput
               value={plan.scheduledTime}
-              onChange={(e) => updatePlanData(plan.id, { scheduledTime: e.target.value })}
+              onChange={(value) => updatePlanData(plan.id, { scheduledTime: value })}
               className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
             />
           </div>
@@ -1046,19 +1045,35 @@ function PerformerCard({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-blue-600 mb-1">開始時間</label>
-              <input
-                type="time"
+              <TimeInput
                 value={performer.availableStartTime || ''}
-                onChange={(e) => updatePerformerData(performer.id, { availableStartTime: e.target.value })}
+                onChange={(value) => {
+                  const updates: Partial<Performer> = { availableStartTime: value };
+                  
+                  // 初回入力時の自動反映：入り時間が空の場合
+                  if (!performer.startTime && value) {
+                    updates.startTime = value;
+                  }
+                  
+                  updatePerformerData(performer.id, updates);
+                }}
                 className="w-full border-blue-200 rounded-xl px-3 py-2 border bg-blue-50/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm"
               />
             </div>
             <div>
               <label className="block text-xs text-blue-600 mb-1">終了時間</label>
-              <input
-                type="time"
+              <TimeInput
                 value={performer.availableEndTime || ''}
-                onChange={(e) => updatePerformerData(performer.id, { availableEndTime: e.target.value })}
+                onChange={(value) => {
+                  const updates: Partial<Performer> = { availableEndTime: value };
+                  
+                  // 初回入力時の自動反映：終わり時間が空の場合
+                  if (!performer.endTime && value) {
+                    updates.endTime = value;
+                  }
+                  
+                  updatePerformerData(performer.id, updates);
+                }}
                 className="w-full border-blue-200 rounded-xl px-3 py-2 border bg-blue-50/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm"
               />
             </div>
@@ -1072,19 +1087,17 @@ function PerformerCard({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-gray-600 mb-1">入り時間</label>
-              <input
-                type="time"
+              <TimeInput
                 value={performer.startTime || ''}
-                onChange={(e) => updatePerformerData(performer.id, { startTime: e.target.value })}
+                onChange={(value) => updatePerformerData(performer.id, { startTime: value })}
                 className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
               />
             </div>
             <div>
               <label className="block text-xs text-gray-600 mb-1">終わり時間</label>
-              <input
-                type="time"
+              <TimeInput
                 value={performer.endTime || ''}
-                onChange={(e) => updatePerformerData(performer.id, { endTime: e.target.value })}
+                onChange={(value) => updatePerformerData(performer.id, { endTime: value })}
                 className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm"
               />
             </div>

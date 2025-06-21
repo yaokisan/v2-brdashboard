@@ -122,6 +122,74 @@ export async function deleteProject(projectId: string): Promise<boolean> {
   return true
 }
 
+export async function duplicateProject(projectId: string): Promise<Project | null> {
+  try {
+    // 元のプロジェクトを取得
+    const originalProject = await getProject(projectId)
+    if (!originalProject) return null
+
+    // 新しいプロジェクトを作成
+    const newProject = await createProject({
+      title: `${originalProject.title}（コピー）`,
+      recordingDate: originalProject.recordingDate,
+      totalRecordingTime: originalProject.totalRecordingTime,
+      location: originalProject.location,
+      address: originalProject.address,
+      locationMapUrl: originalProject.locationMapUrl
+    })
+    if (!newProject) return null
+
+    // 出演者IDのマッピングを保存
+    const performerIdMap = new Map<string, string>()
+
+    // 出演者を複製
+    for (const performer of originalProject.performers) {
+      const newPerformer = await createPerformer(newProject.id, {
+        name: performer.name,
+        role: performer.role,
+        startTime: performer.startTime,
+        endTime: performer.endTime,
+        availableStartTime: performer.availableStartTime,
+        availableEndTime: performer.availableEndTime,
+        isTimeConfirmed: performer.isTimeConfirmed,
+        belongings: performer.belongings
+      })
+      if (newPerformer) {
+        performerIdMap.set(performer.id, newPerformer.id)
+      }
+    }
+
+    // 企画を複製
+    for (const plan of originalProject.plans) {
+      const newPlan = await createPlan(newProject.id, {
+        title: plan.title,
+        scheduledTime: plan.scheduledTime,
+        duration: plan.duration,
+        scriptUrl: plan.scriptUrl,
+        hasScript: plan.hasScript,
+        notes: plan.notes,
+        referenceVideoUrl: plan.referenceVideoUrl,
+        isConfirmed: plan.isConfirmed
+      })
+      if (newPlan) {
+        // 企画出演者の関連を複製
+        for (const planPerformer of plan.performers) {
+          const newPerformerId = performerIdMap.get(planPerformer.performerId)
+          if (newPerformerId) {
+            await addPerformerToPlan(newPlan.id, newPerformerId, planPerformer.role)
+          }
+        }
+      }
+    }
+
+    // 完全なプロジェクトデータを再取得
+    return getProject(newProject.id)
+  } catch (error) {
+    console.error('Error duplicating project:', error)
+    return null
+  }
+}
+
 // 出演者関連
 export async function createPerformer(projectId: string, performerData: Omit<Performer, 'id' | 'assignedPlans'>): Promise<Performer | null> {
   const { data, error } = await supabase
