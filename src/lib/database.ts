@@ -152,7 +152,8 @@ export async function duplicateProject(projectId: string): Promise<Project | nul
         availableStartTime: performer.availableStartTime,
         availableEndTime: performer.availableEndTime,
         isTimeConfirmed: performer.isTimeConfirmed,
-        belongings: performer.belongings
+        belongings: performer.belongings,
+        programItems: performer.programItems
       })
       if (newPerformer) {
         performerIdMap.set(performer.id, newPerformer.id)
@@ -203,7 +204,8 @@ export async function createPerformer(projectId: string, performerData: Omit<Per
       available_start_time: performerData.availableStartTime,
       available_end_time: performerData.availableEndTime,
       is_time_confirmed: performerData.isTimeConfirmed,
-      belongings: performerData.belongings
+      belongings: performerData.belongings,
+      program_items: performerData.programItems
     })
     .select()
     .single()
@@ -227,6 +229,7 @@ export async function updatePerformer(performerId: string, updates: Partial<Perf
   if (updates.availableEndTime !== undefined) updateData.available_end_time = updates.availableEndTime
   if (updates.isTimeConfirmed !== undefined) updateData.is_time_confirmed = updates.isTimeConfirmed
   if (updates.belongings !== undefined) updateData.belongings = updates.belongings
+  if (updates.programItems !== undefined) updateData.program_items = updates.programItems
 
   const { error } = await supabase
     .from('performers')
@@ -454,6 +457,7 @@ function transformPerformerFromDB(dbPerformer: any): Performer {
     availableEndTime: dbPerformer.available_end_time,
     isTimeConfirmed: dbPerformer.is_time_confirmed,
     belongings: dbPerformer.belongings,
+    programItems: dbPerformer.program_items,
     assignedPlans: [] // この情報は別途取得が必要
   }
 }

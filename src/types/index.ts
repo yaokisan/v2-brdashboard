@@ -23,6 +23,7 @@ export interface Performer {
   assignedPlans: string[];
   role?: string;
   belongings?: string;
+  programItems?: string;
 }
 
 export interface Plan {

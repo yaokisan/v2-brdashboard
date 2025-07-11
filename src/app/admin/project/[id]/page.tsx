@@ -1131,10 +1131,23 @@ function PerformerCard({
           <p className="text-xs text-gray-500 mt-1">改行で区切って入力してください</p>
         </div>
 
+        {/* 番組側準備物欄 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">番組側準備物</label>
+          <textarea
+            value={performer.programItems || ''}
+            onChange={(e) => updatePerformerData(performer.id, { programItems: e.target.value })}
+            placeholder="番組側で準備する物を入力してください"
+            rows={3}
+            className="w-full border-gray-200 rounded-xl px-3 py-2 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 text-sm resize-none"
+          />
+          <p className="text-xs text-gray-500 mt-1">改行で区切って入力してください</p>
+        </div>
+
         {/* アクションボタン */}
         <div className="flex justify-between items-center pt-4 border-t border-gray-200">
           <button
-            onClick={() => router.push(`/project/${project.id}/performer/${performer.id}`)}
+            onClick={() => window.open(`/project/${project.id}/performer/${performer.id}`, '_blank')}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center space-x-1"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
