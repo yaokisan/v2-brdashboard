@@ -349,8 +349,8 @@ export default function PerformerPage({
                                     <span>{plan.duration}</span>
                                   </div>
                                   {performerRole?.role && (
-                                    <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                                      {performerRole.role === 'Main' ? 'メイン' : performerRole.role === 'Guest' ? 'ゲスト' : performerRole.role}
+                                    <div className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full text-xs font-medium shadow-sm">
+                                      あなたの役割: {performerRole.role === 'Main' ? 'メイン' : performerRole.role === 'Guest' ? 'ゲスト' : performerRole.role}
                                     </div>
                                   )}
                                 </div>
@@ -376,7 +376,7 @@ export default function PerformerPage({
                                     const coPerformer = project.performers.find(perf => perf.id === p.performerId);
                                     return coPerformer ? (
                                       <span key={p.performerId} className="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
-                                        {coPerformer.name} ({p.role === 'Main' ? 'メイン' : p.role === 'Guest' ? 'ゲスト' : p.role})
+                                        {coPerformer.name} (役割: {p.role === 'Main' ? 'メイン' : p.role === 'Guest' ? 'ゲスト' : p.role})
                                       </span>
                                     ) : null;
                                   })}
@@ -385,23 +385,30 @@ export default function PerformerPage({
                             )}
                             
                             <div className="grid grid-cols-1 gap-3">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-700">台本:</span>
+                              <div className="space-y-2">
+                                <span className="text-sm font-medium text-gray-700 block">台本:</span>
                                 {plan.scriptUrl && plan.scriptUrl !== '台本なし' ? (
                                   <a 
                                     href={plan.scriptUrl} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:from-pink-600 hover:to-purple-600 transition-all duration-200 inline-flex items-center gap-1"
+                                    className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-lg text-base font-medium hover:from-pink-600 hover:to-purple-600 transition-all duration-200 inline-flex items-center justify-center gap-2 w-full sm:w-4/5 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                                   >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                     台本を見る
                                   </a>
-                                ) : (
-                                  <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+                                ) : plan.scriptUrl === '台本なし' ? (
+                                  <span className="px-6 py-3 bg-gray-100 text-gray-600 rounded-lg text-base font-medium inline-flex items-center justify-center w-full sm:w-4/5">
                                     台本なし
+                                  </span>
+                                ) : (
+                                  <span className="px-6 py-3 bg-gray-50 text-gray-500 rounded-lg text-base font-medium inline-flex items-center justify-center gap-2 w-full sm:w-4/5 border border-dashed border-gray-300">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    準備中
                                   </span>
                                 )}
                               </div>
@@ -409,7 +416,24 @@ export default function PerformerPage({
                               <div>
                                 <span className="text-sm font-medium text-gray-700 block mb-1">補足情報:</span>
                                 {plan.notes ? (
-                                  <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">{plan.notes}</p>
+                                  <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 whitespace-pre-wrap">
+                                    {plan.notes.split(/(https?:\/\/[^\s]+)/g).map((part, index) => {
+                                      if (part.match(/^https?:\/\//)) {
+                                        return (
+                                          <a
+                                            key={index}
+                                            href={part}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 underline"
+                                          >
+                                            {part}
+                                          </a>
+                                        );
+                                      }
+                                      return <span key={index}>{part}</span>;
+                                    })}
+                                  </div>
                                 ) : (
                                   <p className="text-sm text-gray-500 italic">なし</p>
                                 )}
