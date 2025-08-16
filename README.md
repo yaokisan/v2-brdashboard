@@ -46,6 +46,7 @@ cp .env.example .env.local
 ```env
 NEXT_PUBLIC_SUPABASE_URL=あなたのSupabaseプロジェクトURL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=あなたのSupabase匿名キー
+ADMIN_PASSWORD=あなたの管理者パスワード
 ```
 
 ### 3. Supabaseデータベースセットアップ
@@ -160,7 +161,7 @@ npm run dev
 
 ### 管理者として使用
 
-1. トップページで管理者パスワードを入力: `beauty-road-admin-2024`
+1. トップページで管理者パスワードを入力（環境変数で設定）
 2. 新規プロジェクト作成
 3. プロジェクト編集で出演者・企画を追加
 4. 香盤表で全体スケジュールを確認

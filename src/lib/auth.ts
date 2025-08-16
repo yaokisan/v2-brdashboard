@@ -1,4 +1,4 @@
-const ADMIN_PASSWORD = 'beauty-road-admin-2024';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'default-dev-password';
 
 export function verifyPassword(password: string): boolean {
   return password === ADMIN_PASSWORD;

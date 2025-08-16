@@ -47,7 +47,7 @@ src/
 ### Key Architectural Patterns
 
 1. **Authentication Flow**:
-   - Admin login via hardcoded password: `beauty-road-admin-2024`
+   - Admin login via password managed in environment variable: `ADMIN_PASSWORD`
    - Cookie-based session management in `lib/auth.ts`
    - Protected routes check authentication server-side
 
@@ -85,6 +85,7 @@ Required in `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+ADMIN_PASSWORD=your-admin-password
 ```
 
 ## Development Notes
