@@ -1,4 +1,5 @@
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'default-dev-password';
+// クライアントからの環境変数参照は行わない。ログインは /api/login を使用します。
+export {};
 
 export function verifyPassword(password: string): boolean {
   return password === ADMIN_PASSWORD;

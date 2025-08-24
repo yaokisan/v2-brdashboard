@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { verifyPassword, setAuthCookie } from '@/lib/auth';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
@@ -14,25 +13,32 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
-    // Add a subtle delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (verifyPassword(password)) {
-      setAuthCookie();
-      router.push('/admin');
-    } else {
-      setError('パスワードが間違っています');
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      if (res.ok) {
+        router.push('/admin');
+        return;
+      }
+      const data = await res.json().catch(() => ({ error: 'ログインに失敗しました' }));
+      setError(data?.error || 'ログインに失敗しました');
+    } catch (err) {
+      setError('ネットワークエラーが発生しました');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 p-4">
       <div className="w-full max-w-md relative">
-        {/* Main card */}
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full mb-4 shadow-lg">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,8 +50,7 @@ export default function LoginPage() {
             </h1>
             <p className="text-gray-600 text-sm font-medium">管理者ダッシュボード</p>
           </div>
-          
-          {/* Form */}
+
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-3">
@@ -80,7 +85,7 @@ export default function LoginPage() {
                 </div>
               )}
             </div>
-            
+
             <button
               type="submit"
               disabled={isLoading}
@@ -99,8 +104,7 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-          
-          {/* Footer */}
+
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="text-center space-y-3">
               <p className="text-sm text-gray-600">
