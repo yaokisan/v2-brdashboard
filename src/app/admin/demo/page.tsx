@@ -70,7 +70,7 @@ export default function DemoAdminDashboard() {
               </div>
               <div className="min-w-0">
                 <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent truncate">
-                  BEAUTY ROAD
+                  Casting BASE
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-600 truncate">デモ管理者ダッシュボード</p>
               </div>
@@ -108,7 +108,7 @@ export default function DemoAdminDashboard() {
                 <div>
                   <h3 className="font-semibold text-amber-900 mb-1">デモモードで動作中</h3>
                   <p className="text-sm text-amber-800">
-                    Beauty Road管理システムの全機能をお試しいただけます。変更内容はセッション中のみ保持され、ブラウザを閉じるとリセットされます。
+                    Casting BASEの基本機能をお試しいただけます。ただし、変更内容はセッション中のみの保持なので、入力した内容の反映を確認することはできません。
                   </p>
                 </div>
               </div>

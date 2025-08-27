@@ -46,7 +46,7 @@ export default function LoginPage() {
               </svg>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              BEAUTY ROAD
+              Casting BASE
             </h1>
             <p className="text-gray-600 text-sm font-medium">管理者ダッシュボード</p>
           </div>

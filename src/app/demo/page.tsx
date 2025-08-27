@@ -13,7 +13,7 @@ export default function DemoPage() {
   useEffect(() => {
     // セッションストレージからデモデータを取得または初期化
     const initializeDemoData = () => {
-      const sessionKey = 'beauty-road-demo-data';
+      const sessionKey = 'casting-base-demo-data';
       let sessionData = sessionStorage.getItem(sessionKey);
       
       if (!sessionData) {
@@ -84,7 +84,7 @@ export default function DemoPage() {
 
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/20">
           <div className="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-8 text-white text-center">
-            <h1 className="text-3xl font-bold mb-3">BEAUTY ROAD デモ</h1>
+            <h1 className="text-3xl font-bold mb-3">Casting BASE デモ</h1>
             <div className="flex items-center justify-center gap-3 mb-2">
               <div className="w-2 h-2 bg-white rounded-full"></div>
               <p className="text-xl font-semibold text-white drop-shadow-sm">システム体験版</p>
@@ -103,7 +103,7 @@ export default function DemoPage() {
                   <div>
                     <h3 className="font-semibold text-blue-900 mb-1">デモについて</h3>
                     <p className="text-sm text-blue-800">
-                      このデモは実際のBeauty Roadプロジェクト管理システムの機能をご体験いただけます。
+                      このデモは実際のCasting BASEプロジェクト管理システムの機能をご体験いただけます。
                       セッション中はデータの変更が保持されますが、ブラウザを閉じると初期状態にリセットされます。
                     </p>
                   </div>
@@ -226,7 +226,7 @@ export default function DemoPage() {
                   <div>
                     <h4 className="font-semibold text-purple-900 mb-1">システムの詳細について</h4>
                     <p className="text-sm text-purple-800">
-                      実際のBeauty Roadシステムでは、管理者機能・香盤表エディター・総合スケジュール管理など、
+                      実際のCasting BASEシステムでは、管理者機能・香盤表エディター・総合スケジュール管理など、
                       より多くの機能をご利用いただけます。詳細については別途お問い合わせください。
                     </p>
                   </div>

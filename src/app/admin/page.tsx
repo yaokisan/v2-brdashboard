@@ -116,7 +116,7 @@ export default function AdminDashboard() {
               </div>
               <div className="min-w-0">
                 <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent truncate">
-                  BEAUTY ROAD
+                  Casting BASE
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-600 truncate">管理者ダッシュボード</p>
               </div>
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
                         value={formData.title}
                         onChange={(e) => setFormData({...formData, title: e.target.value})}
                         className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:bg-white transition-all duration-200"
-                        placeholder="例: BEAUTY ROAD Vol.12"
+                        placeholder="例: Casting BASE Vol.12"
                         required
                       />
                     </div>

@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'BEAUTY ROAD Dashboard',
-  description: 'BEAUTY ROAD出演者情報管理ダッシュボード',
+  title: 'Casting BASE Dashboard',
+  description: 'Casting BASE出演者情報管理ダッシュボード',
 }
 
 export default function RootLayout({

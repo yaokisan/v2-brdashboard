@@ -922,7 +922,7 @@ export default function ScheduleEditor({ project, onScheduleUpdate, onDurationUp
           </h2>
           <div className="flex items-center gap-3">
             {lastSaved && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500" suppressHydrationWarning>
                 最終保存: {lastSaved.toLocaleTimeString()}
               </span>
             )}
