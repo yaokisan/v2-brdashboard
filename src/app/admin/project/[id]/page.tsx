@@ -491,6 +491,66 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                   />
                 </div>
               </div>
+
+              {/* 打ち上げ（飲み会）設定 */}
+              <div className="mt-8 border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">収録後の飲み会（任意参加）</h3>
+                </div>
+
+                <div className="mb-4">
+                  <label className="flex items-center cursor-pointer">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={project.hasAfterParty || false}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          updateProjectData({
+                            hasAfterParty: checked,
+                            ...(!checked ? { afterPartyStartTime: '', afterPartyLocation: '' } : {})
+                          });
+                        }}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-amber-500 peer-checked:to-orange-500"></div>
+                    </div>
+                    <span className="ms-3 text-sm font-medium text-gray-700">飲み会あり</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1 ml-14">
+                    ONにすると、全出演者の詳細ページと収録概要ダッシュボードに飲み会情報が表示されます
+                  </p>
+                </div>
+
+                {project.hasAfterParty && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-200/50">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
+                      <TimeInput
+                        value={project.afterPartyStartTime || ''}
+                        onChange={(value) => updateProjectData({ afterPartyStartTime: value })}
+                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">会場・場所</label>
+                      <input
+                        type="text"
+                        value={project.afterPartyLocation || ''}
+                        onChange={(e) => updateProjectData({ afterPartyLocation: e.target.value })}
+                        placeholder="例: 居酒屋〇〇 渋谷店"
+                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="mt-6 flex justify-between items-center">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

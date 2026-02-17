@@ -8,6 +8,9 @@ export interface Project {
   locationMapUrl?: string;
   performers: Performer[];
   plans: Plan[];
+  hasAfterParty?: boolean;
+  afterPartyStartTime?: string;
+  afterPartyLocation?: string;
   createdAt: string;
   updatedAt: string;
 }

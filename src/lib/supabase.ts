@@ -16,6 +16,9 @@ export type Database = {
           total_recording_time: string
           location: string
           location_map_url: string | null
+          has_after_party: boolean
+          after_party_start_time: string | null
+          after_party_location: string | null
           created_at: string
           updated_at: string
         }
@@ -26,6 +29,9 @@ export type Database = {
           total_recording_time: string
           location: string
           location_map_url?: string | null
+          has_after_party?: boolean
+          after_party_start_time?: string | null
+          after_party_location?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -36,6 +42,9 @@ export type Database = {
           total_recording_time?: string
           location?: string
           location_map_url?: string | null
+          has_after_party?: boolean
+          after_party_start_time?: string | null
+          after_party_location?: string | null
           created_at?: string
           updated_at?: string
         }
