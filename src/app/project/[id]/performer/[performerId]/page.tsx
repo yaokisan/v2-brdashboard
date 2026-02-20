@@ -518,7 +518,6 @@ export default function PerformerPage({
                   {/* 任意参加の案内 */}
                   <div className="bg-white/60 rounded-lg p-3 mb-4 border border-amber-100">
                     <p className="text-sm text-amber-800 leading-relaxed">
-                      収録お疲れ様の気持ちを込めて、ささやかな食事会をご用意しております。<br />
                       <span className="font-semibold">完全任意参加</span>ですので、ご都合に合わせてお気軽にご参加ください。<br />
                       <span className="text-xs text-amber-600 mt-1 inline-block">※ お食事代は割り勘とさせていただきます</span>
                     </p>
