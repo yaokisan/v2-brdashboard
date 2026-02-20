@@ -537,6 +537,22 @@ export default function PerformerPage({
                           会場
                         </p>
                         <p className="text-lg font-bold text-gray-900">{project.afterPartyLocation}</p>
+                        {project.afterPartyMapUrl && (
+                          <a
+                            href={project.afterPartyMapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200"
+                          >
+                            <span className="inline-flex items-center gap-1">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              地図を見る
+                            </span>
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>

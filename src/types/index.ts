@@ -11,6 +11,7 @@ export interface Project {
   hasAfterParty?: boolean;
   afterPartyStartTime?: string;
   afterPartyLocation?: string;
+  afterPartyMapUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

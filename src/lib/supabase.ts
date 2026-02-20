@@ -19,6 +19,7 @@ export type Database = {
           has_after_party: boolean
           after_party_start_time: string | null
           after_party_location: string | null
+          after_party_map_url: string | null
           created_at: string
           updated_at: string
         }
@@ -32,6 +33,7 @@ export type Database = {
           has_after_party?: boolean
           after_party_start_time?: string | null
           after_party_location?: string | null
+          after_party_map_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           has_after_party?: boolean
           after_party_start_time?: string | null
           after_party_location?: string | null
+          after_party_map_url?: string | null
           created_at?: string
           updated_at?: string
         }

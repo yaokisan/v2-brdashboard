@@ -513,7 +513,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           const checked = e.target.checked;
                           updateProjectData({
                             hasAfterParty: checked,
-                            ...(!checked ? { afterPartyStartTime: '', afterPartyLocation: '' } : {})
+                            ...(!checked ? { afterPartyStartTime: '', afterPartyLocation: '', afterPartyMapUrl: '' } : {})
                           });
                         }}
                         className="sr-only peer"
@@ -528,22 +528,34 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 {project.hasAfterParty && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-200/50">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
-                      <TimeInput
-                        value={project.afterPartyStartTime || ''}
-                        onChange={(value) => updateProjectData({ afterPartyStartTime: value })}
-                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
-                      />
+                  <div className="space-y-4 p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-200/50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
+                        <TimeInput
+                          value={project.afterPartyStartTime || ''}
+                          onChange={(value) => updateProjectData({ afterPartyStartTime: value })}
+                          className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">会場・場所</label>
+                        <input
+                          type="text"
+                          value={project.afterPartyLocation || ''}
+                          onChange={(e) => updateProjectData({ afterPartyLocation: e.target.value })}
+                          placeholder="例: 居酒屋〇〇 渋谷店"
+                          className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">会場・場所</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">会場 Google Map URL</label>
                       <input
-                        type="text"
-                        value={project.afterPartyLocation || ''}
-                        onChange={(e) => updateProjectData({ afterPartyLocation: e.target.value })}
-                        placeholder="例: 居酒屋〇〇 渋谷店"
+                        type="url"
+                        value={project.afterPartyMapUrl || ''}
+                        onChange={(e) => updateProjectData({ afterPartyMapUrl: e.target.value })}
+                        placeholder="https://maps.google.com/..."
                         className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
                       />
                     </div>
