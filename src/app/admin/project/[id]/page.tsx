@@ -511,9 +511,12 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                         checked={project.hasAfterParty || false}
                         onChange={(e) => {
                           const checked = e.target.checked;
+                          const defaultNote = '完全任意参加ですので、ご都合に合わせてお気軽にご参加ください。\n※ お食事代は割り勘とさせていただきます';
                           updateProjectData({
                             hasAfterParty: checked,
-                            ...(!checked ? { afterPartyStartTime: '', afterPartyLocation: '', afterPartyAddress: '', afterPartyMapUrl: '' } : {})
+                            ...(checked
+                              ? { afterPartyNote: project.afterPartyNote || defaultNote }
+                              : { afterPartyStartTime: '', afterPartyLocation: '', afterPartyAddress: '', afterPartyMapUrl: '', afterPartyNote: '' })
                           });
                         }}
                         className="sr-only peer"
@@ -568,6 +571,17 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                         placeholder="https://maps.google.com/..."
                         className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">案内メッセージ</label>
+                      <textarea
+                        value={project.afterPartyNote || ''}
+                        onChange={(e) => updateProjectData({ afterPartyNote: e.target.value })}
+                        rows={3}
+                        placeholder="例: 完全任意参加ですので、ご都合に合わせてお気軽にご参加ください。"
+                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 resize-y"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">出演者に表示される案内文です。改行もそのまま反映されます。</p>
                     </div>
                   </div>
                 )}

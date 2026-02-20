@@ -13,6 +13,7 @@ export interface Project {
   afterPartyLocation?: string;
   afterPartyAddress?: string;
   afterPartyMapUrl?: string;
+  afterPartyNote?: string;
   createdAt: string;
   updatedAt: string;
 }
