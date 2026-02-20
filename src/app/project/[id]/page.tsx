@@ -185,7 +185,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                     収録後の飲み会
                   </h2>
                   <div className="w-16 h-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full mx-auto"></div>
-                  <p className="text-sm text-amber-700 mt-2 font-medium">任意参加</p>
+                </div>
+
+                {/* 任意参加の案内 */}
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-amber-200/50 mb-6 max-w-2xl mx-auto">
+                  <p className="text-sm text-amber-800 text-center leading-relaxed">
+                    収録お疲れ様の気持ちを込めて、ささやかな食事会をご用意しております。<br />
+                    <span className="font-semibold">完全任意参加</span>ですので、ご都合に合わせてお気軽にご参加ください。<br />
+                    <span className="text-xs text-amber-600 mt-1 inline-block">※ お食事代は割り勘とさせていただきます</span>
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -220,6 +228,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                         <p className="text-xl text-gray-900 font-bold">
                           {project.afterPartyLocation}
                         </p>
+                        {project.afterPartyAddress && (
+                          <p className="text-sm text-gray-600">{project.afterPartyAddress}</p>
+                        )}
                         {project.afterPartyMapUrl && (
                           <a
                             href={project.afterPartyMapUrl}

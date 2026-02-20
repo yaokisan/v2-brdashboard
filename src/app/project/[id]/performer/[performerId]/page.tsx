@@ -512,9 +512,18 @@ export default function PerformerPage({
                       <h3 className="text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
                         収録後の飲み会
                       </h3>
-                      <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">任意参加</span>
                     </div>
                   </div>
+
+                  {/* 任意参加の案内 */}
+                  <div className="bg-white/60 rounded-lg p-3 mb-4 border border-amber-100">
+                    <p className="text-sm text-amber-800 leading-relaxed">
+                      収録お疲れ様の気持ちを込めて、ささやかな食事会をご用意しております。<br />
+                      <span className="font-semibold">完全任意参加</span>ですので、ご都合に合わせてお気軽にご参加ください。<br />
+                      <span className="text-xs text-amber-600 mt-1 inline-block">※ お食事代は割り勘とさせていただきます</span>
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {project.afterPartyStartTime && (
                       <div className="bg-white/80 rounded-xl p-4 border border-amber-100">
@@ -537,6 +546,9 @@ export default function PerformerPage({
                           会場
                         </p>
                         <p className="text-lg font-bold text-gray-900">{project.afterPartyLocation}</p>
+                        {project.afterPartyAddress && (
+                          <p className="text-sm text-gray-600 mt-1">{project.afterPartyAddress}</p>
+                        )}
                         {project.afterPartyMapUrl && (
                           <a
                             href={project.afterPartyMapUrl}

@@ -64,6 +64,7 @@ export async function createProject(projectData: Omit<Project, 'id' | 'performer
       has_after_party: projectData.hasAfterParty || false,
       after_party_start_time: projectData.afterPartyStartTime || null,
       after_party_location: projectData.afterPartyLocation || null,
+      after_party_address: projectData.afterPartyAddress || null,
       after_party_map_url: projectData.afterPartyMapUrl || null
     })
     .select()
@@ -85,6 +86,7 @@ export async function createProject(projectData: Omit<Project, 'id' | 'performer
     hasAfterParty: data.has_after_party,
     afterPartyStartTime: data.after_party_start_time,
     afterPartyLocation: data.after_party_location,
+    afterPartyAddress: data.after_party_address,
     afterPartyMapUrl: data.after_party_map_url,
     performers: [],
     plans: [],
@@ -105,6 +107,7 @@ export async function updateProject(projectId: string, updates: Partial<Project>
   if (updates.hasAfterParty !== undefined) updateData.has_after_party = updates.hasAfterParty
   if (updates.afterPartyStartTime !== undefined) updateData.after_party_start_time = updates.afterPartyStartTime || null
   if (updates.afterPartyLocation !== undefined) updateData.after_party_location = updates.afterPartyLocation || null
+  if (updates.afterPartyAddress !== undefined) updateData.after_party_address = updates.afterPartyAddress || null
   if (updates.afterPartyMapUrl !== undefined) updateData.after_party_map_url = updates.afterPartyMapUrl || null
 
   const { error } = await supabase
@@ -151,6 +154,7 @@ export async function duplicateProject(projectId: string): Promise<Project | nul
       hasAfterParty: originalProject.hasAfterParty,
       afterPartyStartTime: originalProject.afterPartyStartTime,
       afterPartyLocation: originalProject.afterPartyLocation,
+      afterPartyAddress: originalProject.afterPartyAddress,
       afterPartyMapUrl: originalProject.afterPartyMapUrl
     })
     if (!newProject) return null
@@ -444,6 +448,7 @@ function transformProjectFromDB(dbProject: any): Project {
     hasAfterParty: dbProject.has_after_party || false,
     afterPartyStartTime: dbProject.after_party_start_time,
     afterPartyLocation: dbProject.after_party_location,
+    afterPartyAddress: dbProject.after_party_address,
     afterPartyMapUrl: dbProject.after_party_map_url,
     performers: dbProject.performers?.map(transformPerformerFromDB) || [],
     plans: dbProject.plans?.map((plan: any) => ({

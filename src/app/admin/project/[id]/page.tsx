@@ -513,7 +513,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           const checked = e.target.checked;
                           updateProjectData({
                             hasAfterParty: checked,
-                            ...(!checked ? { afterPartyStartTime: '', afterPartyLocation: '', afterPartyMapUrl: '' } : {})
+                            ...(!checked ? { afterPartyStartTime: '', afterPartyLocation: '', afterPartyAddress: '', afterPartyMapUrl: '' } : {})
                           });
                         }}
                         className="sr-only peer"
@@ -539,7 +539,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">会場・場所</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">会場名</label>
                         <input
                           type="text"
                           value={project.afterPartyLocation || ''}
@@ -548,6 +548,16 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                           className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">住所</label>
+                      <input
+                        type="text"
+                        value={project.afterPartyAddress || ''}
+                        onChange={(e) => updateProjectData({ afterPartyAddress: e.target.value })}
+                        placeholder="例: 東京都渋谷区道玄坂1-1-1"
+                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">会場 Google Map URL</label>
