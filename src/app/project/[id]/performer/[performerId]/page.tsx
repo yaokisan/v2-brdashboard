@@ -516,12 +516,13 @@ export default function PerformerPage({
                   </div>
 
                   {/* 任意参加の案内 */}
-                  <div className="bg-white/60 rounded-lg p-3 mb-4 border border-amber-100">
-                    <p className="text-sm text-amber-800 leading-relaxed">
-                      <span className="font-semibold">完全任意参加</span>ですので、ご都合に合わせてお気軽にご参加ください。<br />
-                      <span className="text-xs text-amber-600 mt-1 inline-block">※ お食事代は割り勘とさせていただきます</span>
-                    </p>
-                  </div>
+                  {project.afterPartyNote && (
+                    <div className="bg-white/60 rounded-lg p-3 mb-4 border border-amber-100">
+                      <p className="text-sm text-amber-800 leading-relaxed whitespace-pre-line">
+                        {project.afterPartyNote}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {project.afterPartyStartTime && (

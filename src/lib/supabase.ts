@@ -21,6 +21,7 @@ export type Database = {
           after_party_location: string | null
           after_party_address: string | null
           after_party_map_url: string | null
+          after_party_note: string | null
           created_at: string
           updated_at: string
         }
@@ -36,6 +37,7 @@ export type Database = {
           after_party_location?: string | null
           after_party_address?: string | null
           after_party_map_url?: string | null
+          after_party_note?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -51,6 +53,7 @@ export type Database = {
           after_party_location?: string | null
           after_party_address?: string | null
           after_party_map_url?: string | null
+          after_party_note?: string | null
           created_at?: string
           updated_at?: string
         }

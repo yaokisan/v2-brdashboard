@@ -188,12 +188,13 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 </div>
 
                 {/* 任意参加の案内 */}
-                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-amber-200/50 mb-6 max-w-2xl mx-auto">
-                  <p className="text-sm text-amber-800 text-center leading-relaxed">
-                    <span className="font-semibold">完全任意参加</span>ですので、ご都合に合わせてお気軽にご参加ください。<br />
-                    <span className="text-xs text-amber-600 mt-1 inline-block">※ お食事代は割り勘とさせていただきます</span>
-                  </p>
-                </div>
+                {project.afterPartyNote && (
+                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-amber-200/50 mb-6 max-w-2xl mx-auto">
+                    <p className="text-sm text-amber-800 text-center leading-relaxed whitespace-pre-line">
+                      {project.afterPartyNote}
+                    </p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
                   {project.afterPartyStartTime && (
