@@ -490,6 +490,17 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                     className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200"
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">入館方法</label>
+                  <textarea
+                    value={project.entryMethod || ''}
+                    onChange={(e) => updateProjectData({ entryMethod: e.target.value })}
+                    rows={4}
+                    placeholder="例: 正面玄関からお入りください。受付で「BEAUTY ROAD」の収録である旨をお伝えください。"
+                    className="w-full border-gray-200 rounded-xl px-4 py-2.5 border bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200 resize-y"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">収録概要ダッシュボードに表示されます。改行もそのまま反映されます。</p>
+                </div>
               </div>
 
               {/* 打ち上げ（飲み会）設定 */}
