@@ -60,7 +60,12 @@ export async function createProject(projectData: Omit<Project, 'id' | 'performer
       total_recording_time: projectData.totalRecordingTime,
       location: projectData.location,
       address: projectData.address,
-      location_map_url: projectData.locationMapUrl
+      location_map_url: projectData.locationMapUrl,
+      has_after_party: projectData.hasAfterParty || false,
+      after_party_start_time: projectData.afterPartyStartTime || null,
+      after_party_location: projectData.afterPartyLocation || null,
+      after_party_address: projectData.afterPartyAddress || null,
+      after_party_map_url: projectData.afterPartyMapUrl || null
     })
     .select()
     .single()
@@ -78,6 +83,11 @@ export async function createProject(projectData: Omit<Project, 'id' | 'performer
     location: data.location,
     address: data.address,
     locationMapUrl: data.location_map_url,
+    hasAfterParty: data.has_after_party,
+    afterPartyStartTime: data.after_party_start_time,
+    afterPartyLocation: data.after_party_location,
+    afterPartyAddress: data.after_party_address,
+    afterPartyMapUrl: data.after_party_map_url,
     performers: [],
     plans: [],
     createdAt: data.created_at,
@@ -94,6 +104,11 @@ export async function updateProject(projectId: string, updates: Partial<Project>
   if (updates.location) updateData.location = updates.location
   if (updates.address !== undefined) updateData.address = updates.address
   if (updates.locationMapUrl !== undefined) updateData.location_map_url = updates.locationMapUrl
+  if (updates.hasAfterParty !== undefined) updateData.has_after_party = updates.hasAfterParty
+  if (updates.afterPartyStartTime !== undefined) updateData.after_party_start_time = updates.afterPartyStartTime || null
+  if (updates.afterPartyLocation !== undefined) updateData.after_party_location = updates.afterPartyLocation || null
+  if (updates.afterPartyAddress !== undefined) updateData.after_party_address = updates.afterPartyAddress || null
+  if (updates.afterPartyMapUrl !== undefined) updateData.after_party_map_url = updates.afterPartyMapUrl || null
 
   const { error } = await supabase
     .from('projects')
@@ -135,7 +150,12 @@ export async function duplicateProject(projectId: string): Promise<Project | nul
       totalRecordingTime: originalProject.totalRecordingTime,
       location: originalProject.location,
       address: originalProject.address,
-      locationMapUrl: originalProject.locationMapUrl
+      locationMapUrl: originalProject.locationMapUrl,
+      hasAfterParty: originalProject.hasAfterParty,
+      afterPartyStartTime: originalProject.afterPartyStartTime,
+      afterPartyLocation: originalProject.afterPartyLocation,
+      afterPartyAddress: originalProject.afterPartyAddress,
+      afterPartyMapUrl: originalProject.afterPartyMapUrl
     })
     if (!newProject) return null
 
@@ -425,6 +445,11 @@ function transformProjectFromDB(dbProject: any): Project {
     location: dbProject.location,
     address: dbProject.address,
     locationMapUrl: dbProject.location_map_url,
+    hasAfterParty: dbProject.has_after_party || false,
+    afterPartyStartTime: dbProject.after_party_start_time,
+    afterPartyLocation: dbProject.after_party_location,
+    afterPartyAddress: dbProject.after_party_address,
+    afterPartyMapUrl: dbProject.after_party_map_url,
     performers: dbProject.performers?.map(transformPerformerFromDB) || [],
     plans: dbProject.plans?.map((plan: any) => ({
       id: plan.id,

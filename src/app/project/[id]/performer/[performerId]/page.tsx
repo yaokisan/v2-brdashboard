@@ -498,6 +498,79 @@ export default function PerformerPage({
               </div>
             )}
             
+            {/* 飲み会情報 */}
+            {project.hasAfterParty && (
+              <div className="border-t border-gray-100 pt-6 mb-8">
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200/70 shadow-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center shadow-md">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                        収録後の飲み会
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* 任意参加の案内 */}
+                  <div className="bg-white/60 rounded-lg p-3 mb-4 border border-amber-100">
+                    <p className="text-sm text-amber-800 leading-relaxed">
+                      <span className="font-semibold">完全任意参加</span>ですので、ご都合に合わせてお気軽にご参加ください。<br />
+                      <span className="text-xs text-amber-600 mt-1 inline-block">※ お食事代は割り勘とさせていただきます</span>
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {project.afterPartyStartTime && (
+                      <div className="bg-white/80 rounded-xl p-4 border border-amber-100">
+                        <p className="text-xs font-medium text-amber-600 uppercase tracking-wide mb-1 flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          開始時間
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">{project.afterPartyStartTime}〜</p>
+                      </div>
+                    )}
+                    {project.afterPartyLocation && (
+                      <div className="bg-white/80 rounded-xl p-4 border border-amber-100">
+                        <p className="text-xs font-medium text-amber-600 uppercase tracking-wide mb-1 flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          会場
+                        </p>
+                        <p className="text-lg font-bold text-gray-900">{project.afterPartyLocation}</p>
+                        {project.afterPartyAddress && (
+                          <p className="text-sm text-gray-600 mt-1">{project.afterPartyAddress}</p>
+                        )}
+                        {project.afterPartyMapUrl && (
+                          <a
+                            href={project.afterPartyMapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200"
+                          >
+                            <span className="inline-flex items-center gap-1">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              地図を見る
+                            </span>
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {performerPlans.length === 0 && (
               <div className="text-center py-12">
                 <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
