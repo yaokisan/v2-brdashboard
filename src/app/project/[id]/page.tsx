@@ -115,30 +115,19 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    収録日
+                    収録日時
                   </h3>
                   <p className="text-xl text-gray-900 font-bold">
                     {project.recordingDate} ({getDayOfWeek(project.recordingDate)})
                   </p>
-                </div>
-                
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/60 shadow-lg text-center">
-                  <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center justify-center gap-3 mb-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    収録時間
-                  </h3>
-                  <p className="text-xl text-gray-900 font-bold">
+                  <p className="text-lg text-gray-900 font-bold mt-2">
                     {formatRecordingTime(project.totalRecordingTime)}
                   </p>
                   <p className="text-sm text-gray-600 mt-2 font-medium">
                     ※スタジオ全体の収録時間帯
                   </p>
                 </div>
-                
+
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/60 shadow-lg text-center">
                   <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center justify-center gap-3 mb-3">
                     <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -172,6 +161,22 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                     )}
                   </div>
                 </div>
+
+                {project.entryMethod && (
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/60 shadow-lg text-center">
+                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center justify-center gap-3 mb-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                      </div>
+                      入館方法
+                    </h3>
+                    <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line text-left">
+                      {project.entryMethod}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

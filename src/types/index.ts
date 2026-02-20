@@ -14,6 +14,7 @@ export interface Project {
   afterPartyAddress?: string;
   afterPartyMapUrl?: string;
   afterPartyNote?: string;
+  entryMethod?: string;
   createdAt: string;
   updatedAt: string;
 }
