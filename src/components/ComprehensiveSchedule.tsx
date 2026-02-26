@@ -78,6 +78,12 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
     }
   }, [project.id]);
 
+  // 出演者をsortOrder順にソート
+  const sortedPerformers = useMemo(() => {
+    if (!project?.performers) return [];
+    return [...project.performers].sort((a, b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999));
+  }, [project?.performers]);
+
   // プロジェクトの収録時間範囲を取得
   const recordingTimeRange = useMemo(() => {
     if (!project?.totalRecordingTime || !project.totalRecordingTime.includes('-')) {
@@ -187,8 +193,8 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
     const activities: { [key: string]: { [key: number]: PerformerActivity } } = {};
 
     // 各出演者を初期化
-    if (project?.performers) {
-      project.performers.forEach(performer => {
+    if (sortedPerformers.length > 0) {
+      sortedPerformers.forEach(performer => {
       activities[performer.id] = {};
       
       // 全タイムスロットを「自由時間」で初期化
@@ -277,8 +283,8 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
         });
       } else {
         // 休憩・準備時間の場合、全出演者に適用
-        if (project?.performers) {
-          project.performers.forEach(performer => {
+        if (sortedPerformers.length > 0) {
+          sortedPerformers.forEach(performer => {
           if (performer.startTime && performer.endTime) {
             const performerStart = timeToMinutes(performer.startTime);
             const performerEnd = timeToMinutes(performer.endTime);
@@ -307,7 +313,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
     }
 
     return activities;
-  }, [project?.performers, timeSlots, allItems]);
+  }, [sortedPerformers, timeSlots, allItems]);
 
   // 全体列の項目をタイムスロットごとに整理（セル結合対応）
   const itemByTimeSlot = useMemo(() => {
@@ -367,22 +373,22 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
       </div>
 
       {/* 香盤表 */}
-      <div className="bg-white border border-gray-300 rounded-lg overflow-x-auto">
-        <table className="min-w-full border-collapse">
+      <div className="bg-white border border-gray-300 rounded-lg">
+        <table className="w-full border-collapse table-fixed">
           {/* ヘッダー */}
           <thead>
             <tr>
-              <th className="bg-gray-200 border border-gray-400 p-2 text-sm font-bold min-w-[120px]">種別</th>
-              <th className="bg-orange-400 border border-gray-400 p-2 text-sm font-bold text-white min-w-[150px]">全体</th>
-              <th className="bg-blue-200 border border-gray-400 p-2 text-sm font-bold" colSpan={project?.performers?.length || 0}>
+              <th className="bg-gray-200 border border-gray-400 p-1 text-xs font-bold" style={{ width: `${Math.max(8, 80 / ((sortedPerformers?.length || 0) + 2))}%` }}>種別</th>
+              <th className="bg-orange-400 border border-gray-400 p-1 text-xs font-bold text-white" style={{ width: `${Math.max(10, 100 / ((sortedPerformers?.length || 0) + 2))}%` }}>全体</th>
+              <th className="bg-blue-200 border border-gray-400 p-1 text-xs font-bold" colSpan={sortedPerformers?.length || 0}>
                 ご出演者様
               </th>
             </tr>
             <tr>
-              <th className="bg-gray-200 border border-gray-400 p-2 text-sm font-bold">名前</th>
-              <th className="bg-orange-400 border border-gray-400 p-2 text-sm font-bold text-white">-</th>
-              {project?.performers?.map(performer => (
-                <th key={performer.id} className="bg-blue-200 border border-gray-400 p-2 text-sm font-bold min-w-[100px]">
+              <th className="bg-gray-200 border border-gray-400 p-1 text-xs font-bold">名前</th>
+              <th className="bg-orange-400 border border-gray-400 p-1 text-xs font-bold text-white">-</th>
+              {sortedPerformers?.map(performer => (
+                <th key={performer.id} className="bg-blue-200 border border-gray-400 p-1 text-xs font-bold break-all">
                   {performer.name}様
                 </th>
               ))}
@@ -431,7 +437,7 @@ export default function ComprehensiveSchedule({ project }: ComprehensiveSchedule
                   )}
 
                   {/* 出演者列 */}
-                  {project?.performers?.map(performer => {
+                  {sortedPerformers?.map(performer => {
                     const activity = performerActivities[performer.id]?.[slot.minutes];
                     
                     // 前のスロットと同じ活動かチェック
