@@ -31,6 +31,7 @@ export interface Performer {
   role?: string;
   belongings?: string;
   programItems?: string;
+  sortOrder?: number;
 }
 
 export interface Plan {

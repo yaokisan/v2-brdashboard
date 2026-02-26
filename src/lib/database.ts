@@ -181,7 +181,8 @@ export async function duplicateProject(projectId: string): Promise<Project | nul
         availableEndTime: performer.availableEndTime,
         isTimeConfirmed: performer.isTimeConfirmed,
         belongings: performer.belongings,
-        programItems: performer.programItems
+        programItems: performer.programItems,
+        sortOrder: performer.sortOrder
       })
       if (newPerformer) {
         performerIdMap.set(performer.id, newPerformer.id)
@@ -221,20 +222,25 @@ export async function duplicateProject(projectId: string): Promise<Project | nul
 
 // 出演者関連
 export async function createPerformer(projectId: string, performerData: Omit<Performer, 'id' | 'assignedPlans'>): Promise<Performer | null> {
+  const insertData: any = {
+    project_id: projectId,
+    name: performerData.name,
+    role: performerData.role,
+    start_time: performerData.startTime,
+    end_time: performerData.endTime,
+    available_start_time: performerData.availableStartTime,
+    available_end_time: performerData.availableEndTime,
+    is_time_confirmed: performerData.isTimeConfirmed,
+    belongings: performerData.belongings,
+    program_items: performerData.programItems
+  }
+  if (performerData.sortOrder !== undefined) {
+    insertData.sort_order = performerData.sortOrder
+  }
+
   const { data, error } = await supabase
     .from('performers')
-    .insert({
-      project_id: projectId,
-      name: performerData.name,
-      role: performerData.role,
-      start_time: performerData.startTime,
-      end_time: performerData.endTime,
-      available_start_time: performerData.availableStartTime,
-      available_end_time: performerData.availableEndTime,
-      is_time_confirmed: performerData.isTimeConfirmed,
-      belongings: performerData.belongings,
-      program_items: performerData.programItems
-    })
+    .insert(insertData)
     .select()
     .single()
 
@@ -248,7 +254,7 @@ export async function createPerformer(projectId: string, performerData: Omit<Per
 
 export async function updatePerformer(performerId: string, updates: Partial<Performer>): Promise<boolean> {
   const updateData: any = {}
-  
+
   if (updates.name) updateData.name = updates.name
   if (updates.role !== undefined) updateData.role = updates.role
   if (updates.startTime !== undefined) updateData.start_time = updates.startTime
@@ -258,6 +264,7 @@ export async function updatePerformer(performerId: string, updates: Partial<Perf
   if (updates.isTimeConfirmed !== undefined) updateData.is_time_confirmed = updates.isTimeConfirmed
   if (updates.belongings !== undefined) updateData.belongings = updates.belongings
   if (updates.programItems !== undefined) updateData.program_items = updates.programItems
+  if (updates.sortOrder !== undefined) updateData.sort_order = updates.sortOrder
 
   const { error } = await supabase
     .from('performers')
@@ -270,6 +277,25 @@ export async function updatePerformer(performerId: string, updates: Partial<Perf
   }
 
   return true
+}
+
+export async function updatePerformerSortOrders(performers: { id: string; sortOrder: number }[]): Promise<boolean> {
+  try {
+    for (const p of performers) {
+      const { error } = await supabase
+        .from('performers')
+        .update({ sort_order: p.sortOrder })
+        .eq('id', p.id)
+      if (error) {
+        console.error('Error updating performer sort order:', error)
+        return false
+      }
+    }
+    return true
+  } catch (error) {
+    console.error('Error updating performer sort orders:', error)
+    return false
+  }
 }
 
 export async function deletePerformer(performerId: string): Promise<boolean> {
@@ -460,7 +486,7 @@ function transformProjectFromDB(dbProject: any): Project {
     afterPartyMapUrl: dbProject.after_party_map_url,
     afterPartyNote: dbProject.after_party_note,
     entryMethod: dbProject.entry_method,
-    performers: dbProject.performers?.map(transformPerformerFromDB) || [],
+    performers: (dbProject.performers?.map(transformPerformerFromDB) || []).sort((a: Performer, b: Performer) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999)),
     plans: dbProject.plans?.map((plan: any) => ({
       id: plan.id,
       title: plan.title,
@@ -493,6 +519,7 @@ function transformPerformerFromDB(dbPerformer: any): Performer {
     isTimeConfirmed: dbPerformer.is_time_confirmed,
     belongings: dbPerformer.belongings,
     programItems: dbPerformer.program_items,
+    sortOrder: dbPerformer.sort_order ?? undefined,
     assignedPlans: [] // この情報は別途取得が必要
   }
 }

@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  getProject, 
-  updateProject, 
-  createPerformer, 
-  updatePerformer, 
+import {
+  getProject,
+  updateProject,
+  createPerformer,
+  updatePerformer,
   deletePerformer,
+  updatePerformerSortOrders,
   createPlan,
   updatePlan,
   deletePlan,
@@ -176,9 +177,11 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
 
   const addPerformer = async () => {
     if (!project) return;
+    const maxSortOrder = project.performers.reduce((max, p) => Math.max(max, p.sortOrder ?? 0), 0);
     const newPerformer = await createPerformer(project.id, {
       name: '',
-      isTimeConfirmed: false
+      isTimeConfirmed: false,
+      sortOrder: maxSortOrder + 1
     });
     
     if (newPerformer) {
@@ -241,6 +244,40 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
       });
     }
   };
+
+  const movePerformer = useCallback(async (performerId: string, direction: 'up' | 'down') => {
+    if (!project) return;
+    const performers = [...project.performers];
+    const index = performers.findIndex(p => p.id === performerId);
+    if (index === -1) return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === performers.length - 1) return;
+
+    const swapIndex = direction === 'up' ? index - 1 : index + 1;
+    [performers[index], performers[swapIndex]] = [performers[swapIndex], performers[index]];
+
+    // sortOrderを振り直す
+    const updatedPerformers = performers.map((p, i) => ({ ...p, sortOrder: i }));
+    setProject({ ...project, performers: updatedPerformers });
+
+    if (isDemoMode) {
+      const sessionKey = 'beauty-road-demo-data';
+      const sessionData = sessionStorage.getItem(sessionKey);
+      if (sessionData) {
+        const parsedData = JSON.parse(sessionData);
+        parsedData.project.performers = updatedPerformers;
+        sessionStorage.setItem(sessionKey, JSON.stringify(parsedData));
+      }
+    } else {
+      try {
+        await updatePerformerSortOrders(updatedPerformers.map((p, i) => ({ id: p.id, sortOrder: i })));
+      } catch (error) {
+        console.error('Failed to update performer sort orders:', error);
+        const originalProject = await getProject(project.id);
+        if (originalProject) setProject(originalProject);
+      }
+    }
+  }, [project, isDemoMode]);
 
   const addPlan = async () => {
     if (!project) return;
@@ -633,55 +670,32 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </button>
               </div>
 
-              {/* 確定済み出演者 */}
-              {project.performers.filter(p => p.isTimeConfirmed).length > 0 && (
-                <div className="mb-8">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                    <h4 className="text-lg font-semibold text-green-800">確定済み出演者</h4>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                      {project.performers.filter(p => p.isTimeConfirmed).length}名
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {project.performers.filter(p => p.isTimeConfirmed).map((performer) => (
-                      <PerformerCard 
-                        key={performer.id} 
-                        performer={performer} 
-                        project={project}
-                        updatePerformerData={updatePerformerData}
-                        removePerformer={removePerformer}
-                        router={router}
-                      />
-                    ))}
-                  </div>
+              {/* 出演者の順序ヒント */}
+              {project.performers.length > 1 && (
+                <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>この並び順が香盤表の左→右の表示順に対応します</span>
                 </div>
               )}
 
-              {/* 未確定出演者 */}
-              {project.performers.filter(p => !p.isTimeConfirmed).length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-4 h-4 bg-orange-500 rounded-full animate-pulse"></div>
-                    <h4 className="text-lg font-semibold text-orange-800">未確定出演者</h4>
-                    <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
-                      {project.performers.filter(p => !p.isTimeConfirmed).length}名
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {project.performers.filter(p => !p.isTimeConfirmed).map((performer) => (
-                      <PerformerCard 
-                        key={performer.id} 
-                        performer={performer} 
-                        project={project}
-                        updatePerformerData={updatePerformerData}
-                        removePerformer={removePerformer}
-                        router={router}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* 出演者リスト（sortOrder順） */}
+              <div className="space-y-3 mb-6">
+                {project.performers.map((performer, index) => (
+                  <PerformerCard
+                    key={performer.id}
+                    performer={performer}
+                    project={project}
+                    index={index}
+                    totalCount={project.performers.length}
+                    updatePerformerData={updatePerformerData}
+                    removePerformer={removePerformer}
+                    movePerformer={movePerformer}
+                    router={router}
+                  />
+                ))}
+              </div>
 
               {project.performers.length === 0 && (
                 <div className="text-center py-12">
@@ -1077,24 +1091,63 @@ function PlanCard({
 }
 
 // 出演者カードコンポーネント
-function PerformerCard({ 
-  performer, 
-  project, 
-  updatePerformerData, 
-  removePerformer, 
-  router 
+function PerformerCard({
+  performer,
+  project,
+  index,
+  totalCount,
+  updatePerformerData,
+  removePerformer,
+  movePerformer,
+  router
 }: {
   performer: Performer;
   project: Project;
+  index: number;
+  totalCount: number;
   updatePerformerData: (id: string, updates: Partial<Performer>) => void;
   removePerformer: (id: string) => void;
+  movePerformer: (id: string, direction: 'up' | 'down') => void;
   router: any;
 }) {
   return (
     <details className="group bg-white/70 backdrop-blur-sm border border-white/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
       <summary className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-pink-50/50 hover:to-purple-50/50 transition-all rounded-xl list-none">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+            {/* 順序移動ボタン */}
+            {totalCount > 1 && (
+              <div className="flex flex-col gap-0.5 flex-shrink-0">
+                <button
+                  onClick={(e) => { e.preventDefault(); movePerformer(performer.id, 'up'); }}
+                  disabled={index === 0}
+                  className={`w-7 h-7 rounded flex items-center justify-center transition-all ${
+                    index === 0
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                  }`}
+                  title="上に移動"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => { e.preventDefault(); movePerformer(performer.id, 'down'); }}
+                  disabled={index === totalCount - 1}
+                  className={`w-7 h-7 rounded flex items-center justify-center transition-all ${
+                    index === totalCount - 1
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                  }`}
+                  title="下に移動"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <h5 className="font-semibold text-gray-900 text-lg truncate">
                 {performer.name || '名前未入力'}様
@@ -1109,8 +1162,8 @@ function PerformerCard({
                   </span>
                 )}
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  performer.isTimeConfirmed 
-                    ? 'bg-green-100 text-green-800' 
+                  performer.isTimeConfirmed
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-orange-100 text-orange-800'
                 }`}>
                   {performer.isTimeConfirmed ? '確定済み' : '未確定'}
