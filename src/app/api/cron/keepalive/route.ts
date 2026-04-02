@@ -25,28 +25,43 @@ export async function GET(request: Request) {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey)
+  const timestamp = new Date().toISOString()
 
   try {
-    // Execute minimal query to keep Supabase active
-    const { count, error } = await supabase
-      .from('projects')
-      .select('*', { count: 'exact', head: true })
+    // INSERT a row into the keepalive table (write operation for stronger activity signal)
+    const { error: insertError } = await supabase
+      .from('keepalive')
+      .insert({ pinged_at: timestamp })
 
-    if (error) {
-      console.error('Keepalive query failed:', error)
+    if (insertError) {
+      console.error('Keepalive insert failed:', insertError)
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: insertError.message },
         { status: 500 }
       )
     }
 
-    const timestamp = new Date().toISOString()
-    console.log(`[${timestamp}] Supabase keepalive successful - projects count: ${count}`)
+    // DELETE old rows to prevent table bloat (keep only the latest 10)
+    const { data: rows } = await supabase
+      .from('keepalive')
+      .select('id')
+      .order('pinged_at', { ascending: false })
+      .range(10, 999)
+
+    if (rows && rows.length > 0) {
+      const idsToDelete = rows.map((r: { id: string }) => r.id)
+      await supabase
+        .from('keepalive')
+        .delete()
+        .in('id', idsToDelete)
+    }
+
+    console.log(`[${timestamp}] Supabase keepalive successful - insert + cleanup done`)
 
     return NextResponse.json({
       success: true,
       timestamp,
-      projectsCount: count,
+      action: 'insert_and_cleanup',
     })
   } catch (error) {
     console.error('Keepalive error:', error)
