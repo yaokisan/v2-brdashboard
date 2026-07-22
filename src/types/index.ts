@@ -14,7 +14,18 @@ export interface Project {
   afterPartyAddress?: string;
   afterPartyMapUrl?: string;
   afterPartyNote?: string;
+  afterPartyDeadline?: string;
   entryMethod?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AfterPartyAttendance {
+  id: string;
+  projectId: string;
+  name: string;
+  status: 'attending' | 'not_attending';
+  comment?: string;
   createdAt: string;
   updatedAt: string;
 }

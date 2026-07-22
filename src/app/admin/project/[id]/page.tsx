@@ -14,9 +14,13 @@ import {
   deletePlan,
   addPerformerToPlan,
   removePerformerFromPlan,
-  updatePlanPerformerRole
+  updatePlanPerformerRole,
+  getAfterPartyAttendances,
+  createAfterPartyAttendance,
+  updateAfterPartyAttendance,
+  deleteAfterPartyAttendance
 } from '@/lib/database';
-import { Project, Performer, Plan } from '@/types';
+import { Project, Performer, Plan, AfterPartyAttendance } from '@/types';
 import TimeInput from '@/components/TimeInput';
 import ScheduleEditor from '@/components/ScheduleEditor';
 import ComprehensiveSchedule from '@/components/ComprehensiveSchedule';
@@ -25,8 +29,9 @@ import demoData from '@/data/demo-data.json';
 
 export default function ProjectEditPage({ params }: { params: Promise<{ id: string }> }) {
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<'basic' | 'performers' | 'plans' | 'schedule-editor' | 'schedule'>('basic');
-  
+  const [activeTab, setActiveTab] = useState<'basic' | 'party' | 'performers' | 'plans' | 'schedule-editor' | 'schedule'>('basic');
+  const [attendances, setAttendances] = useState<AfterPartyAttendance[]>([]);
+  const [newAttendance, setNewAttendance] = useState<{ name: string; status: 'attending' | 'not_attending'; comment: string }>({ name: '', status: 'attending', comment: '' });
   const [loading, setLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const router = useRouter();
@@ -47,6 +52,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
         if (sessionData) {
           const parsedData = JSON.parse(sessionData);
           setProject(parsedData.project);
+          setAttendances(parsedData.attendances || []);
         } else {
           // セッションにない場合は初期データを使用
           const initialProject = {
@@ -80,6 +86,10 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
           return;
         }
         setProject(projectData);
+
+        // 飲み会出欠を取得
+        const attendanceData = await getAfterPartyAttendances(resolvedParams.id);
+        setAttendances(attendanceData);
       }
       
       setLoading(false);
@@ -118,6 +128,81 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
       }
     }
   }, [project, isDemoMode]);
+
+  // 飲み会出欠関連
+  const saveDemoAttendances = (updated: AfterPartyAttendance[]) => {
+    const sessionKey = 'beauty-road-demo-data';
+    const sessionData = sessionStorage.getItem(sessionKey);
+    if (sessionData) {
+      const parsedData = JSON.parse(sessionData);
+      parsedData.attendances = updated;
+      sessionStorage.setItem(sessionKey, JSON.stringify(parsedData));
+    }
+  };
+
+  const handleAddAttendance = async () => {
+    if (!project) return;
+    const name = newAttendance.name.trim();
+    if (!name) {
+      alert('名前を入力してください。');
+      return;
+    }
+
+    if (isDemoMode) {
+      const now = new Date().toISOString();
+      const updated = [...attendances, {
+        id: `demo-attendance-${Date.now()}`,
+        projectId: project.id,
+        name,
+        status: newAttendance.status,
+        comment: newAttendance.comment.trim() || undefined,
+        createdAt: now,
+        updatedAt: now
+      }];
+      setAttendances(updated);
+      saveDemoAttendances(updated);
+    } else {
+      const created = await createAfterPartyAttendance(project.id, {
+        name,
+        status: newAttendance.status,
+        comment: newAttendance.comment.trim() || undefined
+      });
+      if (!created) {
+        alert('出欠の登録に失敗しました。');
+        return;
+      }
+      setAttendances(prev => [...prev, created]);
+    }
+    setNewAttendance({ name: '', status: 'attending', comment: '' });
+  };
+
+  const updateAttendanceLocal = (attendanceId: string, updates: Partial<AfterPartyAttendance>) => {
+    const updated = attendances.map(a => a.id === attendanceId ? { ...a, ...updates } : a);
+    setAttendances(updated);
+    if (isDemoMode) saveDemoAttendances(updated);
+  };
+
+  const persistAttendance = async (attendanceId: string, updates: { name?: string; status?: 'attending' | 'not_attending'; comment?: string }) => {
+    if (isDemoMode) return;
+    const success = await updateAfterPartyAttendance(attendanceId, updates);
+    if (!success) {
+      alert('出欠の更新に失敗しました。');
+    }
+  };
+
+  const handleDeleteAttendance = async (attendanceId: string) => {
+    if (!confirm('この出欠回答を削除しますか？')) return;
+    if (!isDemoMode) {
+      const success = await deleteAfterPartyAttendance(attendanceId);
+      if (!success) {
+        alert('出欠の削除に失敗しました。');
+        return;
+      }
+    }
+    const updated = attendances.filter(a => a.id !== attendanceId);
+    setAttendances(updated);
+    if (isDemoMode) saveDemoAttendances(updated);
+  };
 
   // 香盤表エディターからのスケジュール更新を処理
   const handleScheduleUpdate = useCallback(async (planId: string, newStartTime: string) => {
@@ -425,6 +510,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
             <nav className="-mb-px flex space-x-2 sm:space-x-8 min-w-max">
               {[
                 { key: 'basic', label: '基本情報' },
+                { key: 'party', label: '飲み会' },
                 { key: 'performers', label: '出演者管理' },
                 { key: 'plans', label: '企画管理' },
                 { key: 'schedule-editor', label: '香盤エディタ' },
@@ -540,101 +626,6 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </div>
               </div>
 
-              {/* 打ち上げ（飲み会）設定 */}
-              <div className="mt-8 border-t border-gray-200 pt-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">収録後の飲み会（任意参加）</h3>
-                </div>
-
-                <div className="mb-4">
-                  <label className="flex items-center cursor-pointer">
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        checked={project.hasAfterParty || false}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          const defaultNote = '完全任意参加ですので、ご都合に合わせてお気軽にご参加ください。\n※ お食事代は割り勘とさせていただきます';
-                          updateProjectData({
-                            hasAfterParty: checked,
-                            ...(checked
-                              ? { afterPartyNote: project.afterPartyNote || defaultNote }
-                              : { afterPartyStartTime: '', afterPartyLocation: '', afterPartyAddress: '', afterPartyMapUrl: '', afterPartyNote: '' })
-                          });
-                        }}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-amber-500 peer-checked:to-orange-500"></div>
-                    </div>
-                    <span className="ms-3 text-sm font-medium text-gray-700">飲み会あり</span>
-                  </label>
-                  <p className="text-xs text-gray-500 mt-1 ml-14">
-                    ONにすると、全出演者の詳細ページと収録概要ダッシュボードに飲み会情報が表示されます
-                  </p>
-                </div>
-
-                {project.hasAfterParty && (
-                  <div className="space-y-4 p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-200/50">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
-                        <TimeInput
-                          value={project.afterPartyStartTime || ''}
-                          onChange={(value) => updateProjectData({ afterPartyStartTime: value })}
-                          className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">会場名</label>
-                        <input
-                          type="text"
-                          value={project.afterPartyLocation || ''}
-                          onChange={(e) => updateProjectData({ afterPartyLocation: e.target.value })}
-                          placeholder="例: 居酒屋〇〇 渋谷店"
-                          className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">住所</label>
-                      <input
-                        type="text"
-                        value={project.afterPartyAddress || ''}
-                        onChange={(e) => updateProjectData({ afterPartyAddress: e.target.value })}
-                        placeholder="例: 東京都渋谷区道玄坂1-1-1"
-                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">会場 Google Map URL</label>
-                      <input
-                        type="url"
-                        value={project.afterPartyMapUrl || ''}
-                        onChange={(e) => updateProjectData({ afterPartyMapUrl: e.target.value })}
-                        placeholder="https://maps.google.com/..."
-                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">案内メッセージ</label>
-                      <textarea
-                        value={project.afterPartyNote || ''}
-                        onChange={(e) => updateProjectData({ afterPartyNote: e.target.value })}
-                        rows={3}
-                        placeholder="例: 完全任意参加ですので、ご都合に合わせてお気軽にご参加ください。"
-                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 resize-y"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">出演者に表示される案内文です。改行もそのまま反映されます。</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               <div className="mt-6 flex justify-between items-center">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -646,6 +637,247 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                   onClick={() => {
                     // 既に自動保存されているが、ユーザーの安心のために確認メッセージを表示
                     alert('基本情報が保存されました。');
+                  }}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  保存
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'party' && (
+            <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-4 sm:p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">収録後の飲み会（任意参加）</h3>
+              </div>
+
+              <div className="mb-4">
+                <label className="flex items-center cursor-pointer">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={project.hasAfterParty || false}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        const defaultNote = '完全任意参加ですので、ご都合に合わせてお気軽にご参加ください。\n※ お食事代は割り勘とさせていただきます';
+                        updateProjectData({
+                          hasAfterParty: checked,
+                          ...(checked
+                            ? { afterPartyNote: project.afterPartyNote || defaultNote }
+                            : { afterPartyStartTime: '', afterPartyLocation: '', afterPartyAddress: '', afterPartyMapUrl: '', afterPartyNote: '', afterPartyDeadline: '' })
+                        });
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-amber-500 peer-checked:to-orange-500"></div>
+                  </div>
+                  <span className="ms-3 text-sm font-medium text-gray-700">飲み会あり</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1 ml-14">
+                  ONにすると、全出演者の詳細ページと収録概要ダッシュボードに飲み会情報が表示されます
+                </p>
+              </div>
+
+              {project.hasAfterParty && (
+                <div className="space-y-4 p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-200/50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">開始時間</label>
+                      <TimeInput
+                        value={project.afterPartyStartTime || ''}
+                        onChange={(value) => updateProjectData({ afterPartyStartTime: value })}
+                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">会場名</label>
+                      <input
+                        type="text"
+                        value={project.afterPartyLocation || ''}
+                        onChange={(e) => updateProjectData({ afterPartyLocation: e.target.value })}
+                        placeholder="例: 居酒屋〇〇 渋谷店"
+                        className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">住所</label>
+                    <input
+                      type="text"
+                      value={project.afterPartyAddress || ''}
+                      onChange={(e) => updateProjectData({ afterPartyAddress: e.target.value })}
+                      placeholder="例: 東京都渋谷区道玄坂1-1-1"
+                      className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">会場 Google Map URL</label>
+                    <input
+                      type="url"
+                      value={project.afterPartyMapUrl || ''}
+                      onChange={(e) => updateProjectData({ afterPartyMapUrl: e.target.value })}
+                      placeholder="https://maps.google.com/..."
+                      className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">案内メッセージ</label>
+                    <textarea
+                      value={project.afterPartyNote || ''}
+                      onChange={(e) => updateProjectData({ afterPartyNote: e.target.value })}
+                      rows={3}
+                      placeholder="例: 完全任意参加ですので、ご都合に合わせてお気軽にご参加ください。"
+                      className="w-full border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 resize-y"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">出演者に表示される案内文です。改行もそのまま反映されます。</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">出欠回答期限</label>
+                    <input
+                      type="date"
+                      value={project.afterPartyDeadline || ''}
+                      onChange={(e) => updateProjectData({ afterPartyDeadline: e.target.value })}
+                      className="w-full md:w-1/2 border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">この日の23:59まで出演者側から出欠を回答できます。未設定の場合は期限なしです。</p>
+                  </div>
+                </div>
+              )}
+
+              {project.hasAfterParty && (
+                <div className="mt-8 border-t border-gray-200 pt-6">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                    <h4 className="text-lg font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">出欠状況</h4>
+                    <button
+                      onClick={() => window.open(`/project/${project.id}/attendance`, '_blank')}
+                      className="text-sm text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1 self-start sm:self-auto"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      出欠確認ページを開く
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl px-4 py-2 text-sm">
+                      <span className="text-green-700 font-semibold">参加 {attendances.filter(a => a.status === 'attending').length}名</span>
+                    </div>
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm">
+                      <span className="text-gray-600 font-semibold">不参加 {attendances.filter(a => a.status === 'not_attending').length}名</span>
+                    </div>
+                  </div>
+
+                  {/* 代理入力フォーム */}
+                  <div className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-200/50 p-4 mb-4">
+                    <p className="text-sm font-medium text-gray-700 mb-3">出欠を代理で追加</p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        value={newAttendance.name}
+                        onChange={(e) => setNewAttendance(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="名前"
+                        className="flex-1 border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                      />
+                      <select
+                        value={newAttendance.status}
+                        onChange={(e) => setNewAttendance(prev => ({ ...prev, status: e.target.value as 'attending' | 'not_attending' }))}
+                        className="border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                      >
+                        <option value="attending">参加</option>
+                        <option value="not_attending">不参加</option>
+                      </select>
+                      <input
+                        type="text"
+                        value={newAttendance.comment}
+                        onChange={(e) => setNewAttendance(prev => ({ ...prev, comment: e.target.value }))}
+                        placeholder="コメント（任意）"
+                        className="flex-1 border-amber-200 rounded-xl px-4 py-2.5 border bg-white/80 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200"
+                      />
+                      <button
+                        onClick={handleAddAttendance}
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-2.5 rounded-xl font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-md"
+                      >
+                        追加
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">口頭で確認した場合など、管理者が代わりに登録・修正できます。付き添いの方は1人ずつ登録してください。</p>
+                  </div>
+
+                  {/* 出欠一覧 */}
+                  {attendances.length === 0 ? (
+                    <p className="text-sm text-gray-500 text-center py-6">まだ出欠の回答がありません</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {attendances.map((attendance) => (
+                        <div key={attendance.id} className="flex flex-col sm:flex-row gap-2 sm:items-center bg-white/80 border border-amber-100 rounded-xl p-3">
+                          <input
+                            type="text"
+                            value={attendance.name}
+                            onChange={(e) => updateAttendanceLocal(attendance.id, { name: e.target.value })}
+                            onBlur={(e) => {
+                              const name = e.target.value.trim();
+                              if (name) persistAttendance(attendance.id, { name });
+                            }}
+                            className="flex-1 border-gray-200 rounded-lg px-3 py-2 border bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                          />
+                          <select
+                            value={attendance.status}
+                            onChange={(e) => {
+                              const status = e.target.value as 'attending' | 'not_attending';
+                              updateAttendanceLocal(attendance.id, { status });
+                              persistAttendance(attendance.id, { status });
+                            }}
+                            className={`rounded-lg px-3 py-2 border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                              attendance.status === 'attending'
+                                ? 'border-green-200 bg-green-50 text-green-700'
+                                : 'border-gray-200 bg-gray-50 text-gray-600'
+                            }`}
+                          >
+                            <option value="attending">参加</option>
+                            <option value="not_attending">不参加</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={attendance.comment || ''}
+                            onChange={(e) => updateAttendanceLocal(attendance.id, { comment: e.target.value })}
+                            onBlur={(e) => persistAttendance(attendance.id, { comment: e.target.value.trim() })}
+                            placeholder="コメント"
+                            className="flex-1 border-gray-200 rounded-lg px-3 py-2 border bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                          />
+                          <button
+                            onClick={() => handleDeleteAttendance(attendance.id)}
+                            className="text-red-500 hover:text-red-700 p-2 self-end sm:self-auto"
+                            title="削除"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-between items-center">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>変更は自動的に保存されます</span>
+                </div>
+                <button
+                  onClick={() => {
+                    // 既に自動保存されているが、ユーザーの安心のために確認メッセージを表示
+                    alert('飲み会情報が保存されました。');
                   }}
                   className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
                 >

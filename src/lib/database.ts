@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { Project, Performer, Plan, PlanPerformer, Proposal } from '@/types'
+import { Project, Performer, Plan, PlanPerformer, Proposal, AfterPartyAttendance } from '@/types'
 
 // プロジェクト関連
 export async function getProjects(): Promise<Project[]> {
@@ -67,6 +67,7 @@ export async function createProject(projectData: Omit<Project, 'id' | 'performer
       after_party_address: projectData.afterPartyAddress || null,
       after_party_map_url: projectData.afterPartyMapUrl || null,
       after_party_note: projectData.afterPartyNote || null,
+      after_party_deadline: projectData.afterPartyDeadline || null,
       entry_method: projectData.entryMethod || null
     })
     .select()
@@ -91,6 +92,7 @@ export async function createProject(projectData: Omit<Project, 'id' | 'performer
     afterPartyAddress: data.after_party_address,
     afterPartyMapUrl: data.after_party_map_url,
     afterPartyNote: data.after_party_note,
+    afterPartyDeadline: data.after_party_deadline,
     entryMethod: data.entry_method,
     performers: [],
     plans: [],
@@ -114,6 +116,7 @@ export async function updateProject(projectId: string, updates: Partial<Project>
   if (updates.afterPartyAddress !== undefined) updateData.after_party_address = updates.afterPartyAddress || null
   if (updates.afterPartyMapUrl !== undefined) updateData.after_party_map_url = updates.afterPartyMapUrl || null
   if (updates.afterPartyNote !== undefined) updateData.after_party_note = updates.afterPartyNote || null
+  if (updates.afterPartyDeadline !== undefined) updateData.after_party_deadline = updates.afterPartyDeadline || null
   if (updates.entryMethod !== undefined) updateData.entry_method = updates.entryMethod || null
 
   const { error } = await supabase
@@ -163,6 +166,7 @@ export async function duplicateProject(projectId: string): Promise<Project | nul
       afterPartyAddress: originalProject.afterPartyAddress,
       afterPartyMapUrl: originalProject.afterPartyMapUrl,
       afterPartyNote: originalProject.afterPartyNote,
+      afterPartyDeadline: originalProject.afterPartyDeadline,
       entryMethod: originalProject.entryMethod
     })
     if (!newProject) return null
@@ -485,6 +489,7 @@ function transformProjectFromDB(dbProject: any): Project {
     afterPartyAddress: dbProject.after_party_address,
     afterPartyMapUrl: dbProject.after_party_map_url,
     afterPartyNote: dbProject.after_party_note,
+    afterPartyDeadline: dbProject.after_party_deadline,
     entryMethod: dbProject.entry_method,
     performers: (dbProject.performers?.map(transformPerformerFromDB) || []).sort((a: Performer, b: Performer) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999)),
     plans: dbProject.plans?.map((plan: any) => ({
@@ -585,6 +590,93 @@ export async function deleteScheduleItem(itemId: string): Promise<boolean> {
   }
 
   return true
+}
+
+// 飲み会出欠関連
+export async function getAfterPartyAttendances(projectId: string): Promise<AfterPartyAttendance[]> {
+  const { data, error } = await supabase
+    .from('after_party_attendances')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching after party attendances:', error)
+    return []
+  }
+
+  return data?.map(transformAttendanceFromDB) || []
+}
+
+export async function createAfterPartyAttendance(
+  projectId: string,
+  attendance: { name: string; status: 'attending' | 'not_attending'; comment?: string }
+): Promise<AfterPartyAttendance | null> {
+  const { data, error } = await supabase
+    .from('after_party_attendances')
+    .insert({
+      project_id: projectId,
+      name: attendance.name,
+      status: attendance.status,
+      comment: attendance.comment || null
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating after party attendance:', error)
+    return null
+  }
+
+  return transformAttendanceFromDB(data)
+}
+
+export async function updateAfterPartyAttendance(
+  attendanceId: string,
+  updates: { name?: string; status?: 'attending' | 'not_attending'; comment?: string }
+): Promise<boolean> {
+  const updateData: any = { updated_at: new Date().toISOString() }
+  if (updates.name !== undefined) updateData.name = updates.name
+  if (updates.status !== undefined) updateData.status = updates.status
+  if (updates.comment !== undefined) updateData.comment = updates.comment || null
+
+  const { error } = await supabase
+    .from('after_party_attendances')
+    .update(updateData)
+    .eq('id', attendanceId)
+
+  if (error) {
+    console.error('Error updating after party attendance:', error)
+    return false
+  }
+
+  return true
+}
+
+export async function deleteAfterPartyAttendance(attendanceId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('after_party_attendances')
+    .delete()
+    .eq('id', attendanceId)
+
+  if (error) {
+    console.error('Error deleting after party attendance:', error)
+    return false
+  }
+
+  return true
+}
+
+function transformAttendanceFromDB(dbAttendance: any): AfterPartyAttendance {
+  return {
+    id: dbAttendance.id,
+    projectId: dbAttendance.project_id,
+    name: dbAttendance.name,
+    status: dbAttendance.status,
+    comment: dbAttendance.comment ?? undefined,
+    createdAt: dbAttendance.created_at,
+    updatedAt: dbAttendance.updated_at
+  }
 }
 
 // 企画書関連
