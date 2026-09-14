@@ -442,7 +442,7 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
       <nav className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20">
+          <div className="flex justify-between items-center gap-3 sm:gap-4 h-16 sm:h-20">
             <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
               <button
                 onClick={() => router.push(isDemoMode ? '/' : '/admin')}
@@ -469,6 +469,20 @@ export default function ProjectEditPage({ params }: { params: Promise<{ id: stri
                 </div>
               )}
             </div>
+            <a
+              href={`/project/${project.id}`}
+              target={isDemoMode ? undefined : '_blank'}
+              rel={isDemoMode ? undefined : 'noopener noreferrer'}
+              className="inline-flex min-h-11 flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-green-500 px-3 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 sm:px-4"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <span className="hidden sm:inline">ダッシュボードを表示</span>
+              <span className="sm:hidden">表示</span>
+              {!isDemoMode && <span className="sr-only">（新しいタブで開きます）</span>}
+            </a>
           </div>
         </div>
       </nav>
