@@ -4,6 +4,7 @@ import * as db from '@/lib/server/database'
 import { getSupabase } from '@/lib/supabase'
 import { validOperation, publicReads, publicWrites, attendanceOpen } from '@/lib/data-policy'
 import { attendanceCookie, attendanceMaxAge, createAttendanceProof, validAttendanceProof } from '@/lib/attendance-proof'
+import { cliOperations, CliDataError, runCliOperation } from '@/lib/server/cli-data'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -37,6 +38,16 @@ export async function POST(request: Request) {
     let payload
     try { payload = JSON.parse(Buffer.concat(chunks).toString('utf8')) } catch { return reply({ error: '入力形式が不正です' }, 400) }
     const { operation, args } = payload || {}
+    // CLI access is always administrative, including reads and contract probes.
+    // Authenticate before validating table names or obtaining a database client.
+    if (typeof operation === 'string' && cliOperations.has(operation)) {
+      if (!hasAdminSession(request)) return reply({ error: '管理者ログインが必要です', code: 'unauthorized' }, 401)
+      try { return reply({ data: await runCliOperation(operation, args, getSupabase) }) }
+      catch (error) {
+        if (error instanceof CliDataError) return reply({ error: 'CLI操作を完了できませんでした', code: error.code }, error.status)
+        return reply({ error: 'CLI操作を完了できませんでした', code: 'database_unavailable' }, 503)
+      }
+    }
     if (!validOperation(operation, args)) return reply({ error: '操作または入力が不正です' }, 400)
     const admin = hasAdminSession(request)
     if (!admin && !publicReads.has(operation) && !publicWrites.has(operation)) return reply({ error: '管理者ログインが必要です' }, 401)
