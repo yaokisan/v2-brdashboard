@@ -89,6 +89,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
   const attendingList = attendances.filter(a => a.status === 'attending');
 
   const startEdit = (attendance: AfterPartyAttendance) => {
+    if (!isDemoMode && !attendance.canEdit) return;
     setEditingId(attendance.id);
     setName(attendance.name);
     setStatus(attendance.status);
@@ -126,6 +127,11 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
       const existing = editingId
         ? attendances.find(a => a.id === editingId)
         : attendances.find(a => a.name.replace(/\s+/g, '').toLowerCase() === normalized);
+
+      if (existing && !isDemoMode && !existing.canEdit) {
+        alert('この回答は元の端末で変更するか、スタッフへご連絡ください。');
+        return;
+      }
 
       if (existing && !editingId) {
         const ok = confirm(`「${existing.name}」さんの回答は既に登録されています。回答を更新しますか？`);
@@ -198,6 +204,8 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
       }
 
       cancelEdit();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : '回答を保存できませんでした');
     } finally {
       setSubmitting(false);
     }
@@ -409,7 +417,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
                 )}
               </div>
               <p className="text-xs text-gray-500 text-center">
-                回答は後からこのページで変更できます（同じお名前で再送信すると上書きされます）
+                この端末で送信した回答は、このページで変更できます。別の端末や以前の回答の変更はスタッフへご連絡ください。
               </p>
             </div>
           </div>
@@ -425,7 +433,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
           </div>
 
           {attendingList.length > 0 && !isDeadlinePassed && (
-            <p className="text-xs text-gray-400 mb-3">※ ご自身以外の回答の変更はお控えください</p>
+            <p className="text-xs text-gray-400 mb-3">※ コメントはスタッフと回答した端末で確認できます</p>
           )}
 
           {attendingList.length === 0 ? (
@@ -448,7 +456,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
                       <p className="text-xs text-gray-600 mt-0.5 break-words">{attendance.comment}</p>
                     )}
                   </div>
-                  {!isDeadlinePassed && (
+                  {!isDeadlinePassed && (isDemoMode || attendance.canEdit) && (
                     <button
                       onClick={() => startEdit(attendance)}
                       className="text-xs text-amber-600 hover:text-amber-700 font-medium flex-shrink-0"

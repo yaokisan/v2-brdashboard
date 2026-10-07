@@ -45,13 +45,15 @@ cp .env.example .env.local
 `.env.local` を編集：
 ```env
 NEXT_PUBLIC_SUPABASE_URL=あなたのSupabaseプロジェクトURL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=あなたのSupabase匿名キー
+SUPABASE_SERVICE_ROLE_KEY=サーバー専用のSupabaseキー
 ADMIN_PASSWORD=あなたの管理者パスワード
+SESSION_SECRET=32文字以上の独立したランダム値
+CRON_SECRET=別のランダム値
 ```
 
 ### 3. Supabaseデータベースセットアップ
 
-Supabase の SQL Editor で以下のクエリを実行：
+以下は初期4テーブルの参考スキーマです。既存本番には作成SQLを再実行せず、追加テーブルを含む現在のスキーマを確認してください。セキュリティ移行の順番は [SECURITY_DEPLOYMENT.md](SECURITY_DEPLOYMENT.md) を参照。
 
 ```sql
 -- プロジェクトテーブル
@@ -142,11 +144,9 @@ ALTER TABLE performers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plan_performers ENABLE ROW LEVEL SECURITY;
 
--- 全操作許可ポリシー
-CREATE POLICY "Allow all operations" ON projects FOR ALL USING (true);
-CREATE POLICY "Allow all operations" ON performers FOR ALL USING (true);
-CREATE POLICY "Allow all operations" ON plans FOR ALL USING (true);
-CREATE POLICY "Allow all operations" ON plan_performers FOR ALL USING (true);
+-- ブラウザはDBへ直接接続しない。認可済みサーバーだけが操作する。
+REVOKE ALL ON projects, performers, plans, plan_performers FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON projects, performers, plans, plan_performers TO service_role;
 ```
 
 ### 4. 開発サーバーの起動

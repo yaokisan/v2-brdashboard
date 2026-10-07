@@ -23,7 +23,7 @@ npm run lint         # Run ESLint
 ## Architecture
 
 ### Tech Stack
-- **Framework**: Next.js 15.3.3 with App Router
+- **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript with strict mode
 - **Styling**: Tailwind CSS
 - **Database**: Supabase (PostgreSQL)
@@ -52,9 +52,9 @@ src/
    - Protected routes check authentication server-side
 
 2. **Data Operations**:
-   - All database operations go through `lib/database.ts`
-   - Supabase client initialized in `lib/supabase.ts`
-   - No API routes - all operations are client-side via Supabase SDK
+   - Browser facade `lib/database.ts` calls the allowlisted `/api/data` endpoint
+   - Database operations live in `lib/server/database.ts`; `lib/supabase.ts` is server-only
+   - Every private operation verifies the signed admin session; public operations are explicitly scoped
 
 3. **Type Safety**:
    - Central type definitions in `src/types/index.ts`
@@ -77,14 +77,16 @@ Main tables:
 All tables have:
 - UUID primary keys
 - Automatic `updated_at` timestamps via triggers
-- Row Level Security with open policies
+- Row Level Security enabled; anonymous/authenticated table access revoked (apply security migration)
 
 ### Environment Variables
 
 Required in `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-server-only-key
+SESSION_SECRET=independent-random-secret-at-least-32-characters
+CRON_SECRET=separate-random-secret
 ADMIN_PASSWORD=your-admin-password
 ```
 
@@ -94,4 +96,4 @@ ADMIN_PASSWORD=your-admin-password
 - Demo system available at `/admin/demo` with sample data
 - Mobile-responsive design using Tailwind's responsive utilities
 - Time management includes confirmed/unconfirmed states for flexibility
-- No test suite currently implemented
+- Run `npm test`; review `SECURITY_DEPLOYMENT.md` before production rollout

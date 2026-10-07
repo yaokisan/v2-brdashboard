@@ -21,6 +21,7 @@ export interface Project {
 }
 
 export interface AfterPartyAttendance {
+  canEdit?: boolean;
   id: string;
   projectId: string;
   name: string;
@@ -126,7 +127,7 @@ export interface Proposal {
   expenseNote?: string;
   slug: string;
   isPublished: boolean;
-  expiresAt?: string;
+  expiresAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

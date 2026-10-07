@@ -1,33 +1,22 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET(request: Request) {
-  // Verify cron secret for security (optional but recommended)
+  // Fail closed when the cron secret has not been configured.
   const authHeader = request.headers.get('authorization')
   if (
-    process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
+    !process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`
   ) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseKey) {
-    return NextResponse.json(
-      { success: false, error: 'Supabase configuration missing' },
-      { status: 500 }
-    )
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey)
   const timestamp = new Date().toISOString()
 
   try {
+    const supabase = getSupabase()
     // INSERT a row into the keepalive table (write operation for stronger activity signal)
     const { error: insertError } = await supabase
       .from('keepalive')
@@ -36,7 +25,7 @@ export async function GET(request: Request) {
     if (insertError) {
       console.error('Keepalive insert failed:', insertError)
       return NextResponse.json(
-        { success: false, error: insertError.message },
+        { success: false, error: 'Database operation failed' },
         { status: 500 }
       )
     }
