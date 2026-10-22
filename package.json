@@ -1,6 +1,9 @@
 {
   "name": "v2-brdashboard",
   "version": "1.0.0",
+  "engines": {
+    "node": "24.x"
+  },
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
